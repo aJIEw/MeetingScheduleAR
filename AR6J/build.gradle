@@ -1,0 +1,39 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "25.0.2"
+
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 25
+        versionCode 6     // Integer type incremented by 1 for every release, major or minor, to the Google store
+        versionName "6.0" // The real fully qualified major and minor release description
+
+        buildTypes {
+                release {
+                minifyEnabled false
+                proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            }
+        }
+    }
+}
+
+dependencies {
+    compile 'com.android.support:appcompat-v7:25.2.0'
+}
+
+task jarReleaseUnity(type: Jar) {
+    dependsOn build
+    from fileTree(dir: 'build/intermediates/classes/release', excludes: ['**/rendering/*', '**/R$*', '**/assets/*', '**/ARActivity*', '**/R.class', '**/support/*'])
+    group 'build'
+    archiveName 'ar6jUnity.jar'
+}
+
+task jarDebugUnity(type: Jar) {
+    dependsOn build
+    from fileTree(dir: 'build/intermediates/classes/debug', excludes: ['**/rendering/*', '**/R$*', '**/assets/*', '**/ARActivity*', '**/R.class', '**/support/*'])
+    group 'build'
+    archiveName 'ar6jUnityDebug.jar'
+}
+

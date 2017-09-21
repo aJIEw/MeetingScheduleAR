@@ -1,0 +1,43 @@
+<resources>
+
+    <style name="ARToolKit6Theme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">@color/primary_artk_light</item>
+        <item name="colorPrimaryDark">@color/primary_dark_artk_light</item>
+        <item name="colorAccent">@color/highlight_artk_light</item>
+        <item name="android:windowBackground">@color/background_artk_light</item>
+        <item name="android:textColor">@color/primary_text_default_material_light</item>
+        <item name="android:colorForeground">@color/primary_text_default_material_light</item>
+
+        <item name="android:actionBarStyle">@style/MyActionBar</item>
+        <!-- Support library compatibility -->
+        <item name="actionBarStyle">@style/MyActionBar</item>
+        <item name="android:windowContentOverlay">@null</item>
+
+    </style>
+
+    <style name="SplashTheme" parent="ARToolKit6Theme">
+        <item name="android:windowBackground">@drawable/splash_drawable</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
+    <style name="SemiTransparent" parent="ARToolKit6Theme">
+        <item name="android:background">@color/primary_dark_artk_light_trans</item>
+    </style>
+
+    <style name="solidBackground" parent="ARToolKit6Theme">
+        <item name="android:background">
+            @color/background_artk_light
+        </item>
+    </style>
+
+    <style name="MyActionBar" parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
+        <item name="android:background">@drawable/actionbar_background</item>
+        <item name="android:windowActionBarOverlay">true</item>
+
+        <!-- Support library compatibility -->
+        <item name="background">@drawable/actionbar_background</item>
+        <item name="windowActionBarOverlay">true</item>
+    </style>
+
+    <drawable name="actionbar_background">#330000f0</drawable>
+</resources>
