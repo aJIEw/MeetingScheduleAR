@@ -31,13 +31,16 @@
     <application
         android:name=".BaseApplication"
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher_ar"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
-        <activity android:name=".ui.activity.ARScannerActivity">
+        <activity
+            android:name=".ui.activity.MainActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize"
+            android:screenOrientation="unspecified"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
@@ -46,11 +49,6 @@
         </activity>
         <!-- Camera Preference Settings -->
         <activity android:name="org.artoolkit.ar6.base.camera.CameraPreferencesActivity"/>
-        <activity
-            android:name=".ui.activity.MainActivity"
-            android:label="@string/title_activity_main"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
     </application>
 
 </manifest>

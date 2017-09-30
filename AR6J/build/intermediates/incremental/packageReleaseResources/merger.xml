@@ -3,10 +3,10 @@
         <item>0</item>
     </string-array><string-array name="menuItems">
         <item>@string/menuItem_settings</item>
-    </string-array><string name="pref_defaultValue_cameraResolution">640x480</string><string name="menuItem_settings">Settings</string><string-array name="pref_entryValues_cameraResolution">
-        <item>640x480</item>
+    </string-array><string name="pref_defaultValue_cameraResolution">320x240</string><string name="menuItem_settings">Settings</string><string-array name="pref_entryValues_cameraResolution">
+        <item>320x240</item>
     </string-array><string name="prefCategory_title_camera">Camera settings</string><string-array name="pref_entries_cameraResolution">
-        <item>640x480   (4:3)</item>
+        <item>320x240   (4:3)</item>
     </string-array><string name="settingsDesc">Open settings</string><string-array name="pref_entries_cameraIndex">
         <item>Rear camera</item>
     </string-array><string name="pref_title_cameraIndex">Change camera</string><string name="pref_title_cameraResolution">Camera resolution</string><string name="pref_defaultValue_cameraIndex">0</string><string name="pref_cameraResolutionString">pref_cameraResolution</string></file><file path="C:\WorkSpace\AndroidProject\MeetingScheduleAR\AR6J\src\main\res\values\styles.xml" qualifiers=""><style name="solidBackground" parent="ARToolKit6Theme">

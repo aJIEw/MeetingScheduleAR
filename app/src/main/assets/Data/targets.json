@@ -1,0 +1,19 @@
+{
+  "images" :
+  [
+    {
+      "image" : "Data/2d/sight_plus_0.jpg",
+      "name" : "sp0"
+    },
+    {
+      "image" : "Data/2d/sight_plus_0.jpg",
+      "name" : "sp1",
+      "size" : [8.56, 5.4],
+      "uid" : "uid-string"
+    },
+    {
+      "image" : "Data/2d/humpback_whale.jpg",
+      "name" : "arwhale"
+    }
+  ]
+}

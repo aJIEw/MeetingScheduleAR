@@ -41,7 +41,7 @@ public class Line implements ARDrawable {
     private float[] start = new float[3];
     private float[] end = new float[3];
     private float width;
-    private float[] color = {1, 0, 0, 1};
+    private float[] color = {1, 0, 0, 1}; // red
     private FloatBuffer mVertexBuffer;
     private FloatBuffer mColorBuffer;
 
@@ -60,6 +60,18 @@ public class Line implements ARDrawable {
     public Line(float width, ShaderProgram shaderProgram) {
         this(width);
         this.shaderProgram = shaderProgram;
+    }
+
+    /**
+     * @param start Vector were the line starts
+     * @param end   Vector were the line ends
+     * @param width Width of the vector
+     */
+    public Line(float[] start, float[] end, float width) {
+        setStart(start);
+        setEnd(end);
+        this.width = width;
+        setArrays();
     }
 
     private void setArrays() {

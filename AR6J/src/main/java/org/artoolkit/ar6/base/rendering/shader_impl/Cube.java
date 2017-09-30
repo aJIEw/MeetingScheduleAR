@@ -26,8 +26,8 @@
 package org.artoolkit.ar6.base.rendering.shader_impl;
 
 import org.artoolkit.ar6.base.rendering.ARDrawable;
-import org.artoolkit.ar6.base.rendering.util.RenderUtils;
 import org.artoolkit.ar6.base.rendering.ShaderProgram;
+import org.artoolkit.ar6.base.rendering.util.RenderUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -40,7 +40,7 @@ public class Cube implements ARDrawable {
     private FloatBuffer mVertexBuffer;
     private FloatBuffer mColorBuffer;
     private ByteBuffer mIndexBuffer;
-    private ShaderProgram shaderProgram;
+    private ShaderProgram mShaderProgram;
 
     @SuppressWarnings("unused")
     public Cube() {
@@ -59,25 +59,28 @@ public class Cube implements ARDrawable {
     @SuppressWarnings("unused")
     public Cube(ShaderProgram shaderProgram) {
         super();
-        this.shaderProgram = shaderProgram;
+        this.mShaderProgram = shaderProgram;
     }
 
     @SuppressWarnings("WeakerAccess")
-    public FloatBuffer getmVertexBuffer() {
+    public FloatBuffer getVertexBuffer() {
         return mVertexBuffer;
     }
     @SuppressWarnings("WeakerAccess")
-    public FloatBuffer getmColorBuffer() {
+    public FloatBuffer getColorBuffer() {
         return mColorBuffer;
     }
     @SuppressWarnings("WeakerAccess")
-    public ByteBuffer getmIndexBuffer() {
+    public ByteBuffer getIndexBuffer() {
         return mIndexBuffer;
     }
 
     private void setArrays(float size, float x, float y, float z) {
 
         float hs = size / 2.0f;
+
+        // scale factor
+        float sf = 0.4f;
 
         /*
         In the marker coordinate system z points from the marker up. x goes to the right and y to the top
@@ -87,14 +90,15 @@ public class Cube implements ARDrawable {
                 // in the front on the left of the ground plane.
                 x + hs, y - hs, z - hs, // 1 --> That is the one to the right of corner 0
                 x + hs, y + hs, z - hs, // 2 --> That is the one to the back right of corner 0
-                x - hs, y + hs, z - hs, // 3 --> That is the one to the left of corner 2
-                // Or if you imaging (or paint) a 3D cube on paper this is the only corner that is hidden
-                x - hs, y - hs, z + hs, // 4 --> That is the top left corner. Directly on top of 0
-                x + hs, y - hs, z + hs, // 5 --> That is directly on top of 1
-                x + hs, y + hs, z + hs, // 6 --> That is directly on top of 2
-                x - hs, y + hs, z + hs, // 7 --> That is directly on top of 3
+                x - hs, y + hs, z - hs, // 3 --> That is the one to the left of corner 2, Or if you imaging (or paint) a 3D cube on paper this is the only corner that is hidden
+                (x - hs) * sf, (y - hs) * sf, (z + hs) * sf, // 4 --> That is the top left corner. Directly on top of 0
+                (x + hs) * sf, (y - hs) * sf, (z + hs) * sf, // 5 --> That is directly on top of 1
+                (x + hs) * sf, (y + hs) * sf, (z + hs) * sf, // 6 --> That is directly on top of 2
+                (x - hs) * sf, (y + hs) * sf, (z + hs) * sf, // 7 --> That is directly on top of 3
         };
         float c = 1.0f;
+
+        // the color of the 8 vertices
         float colors[] = {
                 0, 0, 0, c, // 0 black
                 c, 0, 0, c, // 1 red
@@ -106,7 +110,8 @@ public class Cube implements ARDrawable {
                 0, c, c, c, // 7 cyan
         };
 
-        byte indices[] = {
+        // draw vertices order
+        byte drawOrderList[] = {
                 // bottom
                 1, 0, 2,
                 2, 0, 3,
@@ -120,7 +125,7 @@ public class Cube implements ARDrawable {
                 0, 4, 3,
                 3, 4, 7,
                 // back
-                7, 6, 3,
+                7, 6, 3, // clockwise order if you see it from the near face
                 6, 2, 3,
                 // front
                 0, 1, 4,
@@ -129,7 +134,7 @@ public class Cube implements ARDrawable {
 
         mVertexBuffer = RenderUtils.buildFloatBuffer(vertices);
         mColorBuffer = RenderUtils.buildFloatBuffer(colors);
-        mIndexBuffer = RenderUtils.buildByteBuffer(indices);
+        mIndexBuffer = RenderUtils.buildByteBuffer(drawOrderList); // use ByteBuffer instead of ShortBuffer
 
     }
 
@@ -142,10 +147,10 @@ public class Cube implements ARDrawable {
      */
     public void draw(float[] projectionMatrix, float[] modelViewMatrix) {
 
-        shaderProgram.setProjectionMatrix(projectionMatrix);
-        shaderProgram.setModelViewMatrix(modelViewMatrix);
+        mShaderProgram.setProjectionMatrix(projectionMatrix);
+        mShaderProgram.setModelViewMatrix(modelViewMatrix);
 
-        shaderProgram.render(this.getmVertexBuffer(), this.getmColorBuffer(), this.getmIndexBuffer());
+        mShaderProgram.render(this.getVertexBuffer(), this.getColorBuffer(), this.getIndexBuffer());
     }
 
     @Override
@@ -153,6 +158,6 @@ public class Cube implements ARDrawable {
      * Sets the shader program used by this geometry.
      */
     public void setShaderProgram(ShaderProgram shaderProgram) {
-        this.shaderProgram = shaderProgram;
+        this.mShaderProgram = shaderProgram;
     }
 }

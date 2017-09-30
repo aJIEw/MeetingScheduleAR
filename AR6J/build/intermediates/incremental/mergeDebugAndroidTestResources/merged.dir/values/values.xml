@@ -7,13 +7,13 @@
         <item>Rear camera</item>
     </string-array>
     <string-array name="pref_entries_cameraResolution">
-        <item>640x480   (4:3)</item>
+        <item>320x240   (4:3)</item>
     </string-array>
     <string-array name="pref_entryValues_cameraIndex">
         <item>0</item>
     </string-array>
     <string-array name="pref_entryValues_cameraResolution">
-        <item>640x480</item>
+        <item>320x240</item>
     </string-array>
     <attr format="reference" name="drawerArrowStyle"/>
     <attr format="dimension" name="height"/>
@@ -169,7 +169,7 @@
             <flag name="withText" value="4"/>
             
             <flag name="collapseActionView" value="8"/>
-        </attr><attr format="reference" name="actionLayout"/><attr format="string" name="actionViewClass"/><attr format="string" name="actionProviderClass"/></declare-styleable>
+        </attr><attr format="reference" name="actionLayout"/><attr format="string" name="actionViewClass"/><attr format="string" name="actionProviderClass"/><attr format="string" name="contentDescription"/><attr format="string" name="tooltipText"/></declare-styleable>
     <declare-styleable name="MenuView"><attr name="android:itemTextAppearance"/><attr name="android:horizontalDivider"/><attr name="android:verticalDivider"/><attr name="android:headerBackground"/><attr name="android:itemBackground"/><attr name="android:windowAnimationStyle"/><attr name="android:itemIconDisabledAlpha"/><attr format="boolean" name="preserveIconSpacing"/><attr format="reference" name="subMenuArrow"/></declare-styleable>
     <declare-styleable name="PopupWindow"><attr format="boolean" name="overlapAnchor"/><attr name="android:popupBackground"/><attr name="android:popupAnimationStyle"/></declare-styleable>
     <declare-styleable name="PopupWindowBackgroundState"><attr format="boolean" name="state_above_anchor"/></declare-styleable>
@@ -373,7 +373,7 @@
     <string name="prefCategory_title_camera">Camera settings</string>
     <string name="pref_cameraResolutionString">pref_cameraResolution</string>
     <string name="pref_defaultValue_cameraIndex">0</string>
-    <string name="pref_defaultValue_cameraResolution">640x480</string>
+    <string name="pref_defaultValue_cameraResolution">320x240</string>
     <string name="pref_title_cameraIndex">Change camera</string>
     <string name="pref_title_cameraResolution">Camera resolution</string>
     <string name="search_menu_title">Search</string>

@@ -13,12 +13,12 @@ The UnityARPlayer project is build as .aar and due to that it contains the resou
     <string name="prefCategory_title_camera">Camera settings</string>
     <string name="pref_title_cameraResolution">Camera resolution</string>
     <string-array name="pref_entries_cameraResolution">
-        <item>640x480   (4:3)</item>
+        <item>320x240   (4:3)</item>
     </string-array>
     <string-array name="pref_entryValues_cameraResolution">
-        <item>640x480</item>
+        <item>320x240</item>
     </string-array>
-    <string name="pref_defaultValue_cameraResolution">640x480</string>
+    <string name="pref_defaultValue_cameraResolution">320x240</string>
 
     <string name="pref_title_cameraIndex">Change camera</string>
     <string name="settingsDesc">Open settings</string>

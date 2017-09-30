@@ -4,7 +4,7 @@
 
     <uses-sdk
         android:minSdkVersion="15"
-        android:targetSdkVersion="25" />
+        android:targetSdkVersion="26" />
 
     <instrumentation
         android:name="android.test.InstrumentationTestRunner"
@@ -14,6 +14,10 @@
         android:targetPackage="org.artoolkit.ar6.base.test" />
 
     <uses-permission android:name="android.permission.CAMERA" />
+
+    <meta-data
+        android:name="android.support.VERSION"
+        android:value="26.0.0-alpha1" />
 
     <application>
         <uses-library android:name="android.test.runner" />

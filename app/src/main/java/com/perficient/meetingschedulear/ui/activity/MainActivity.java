@@ -1,103 +1,119 @@
 package com.perficient.meetingschedulear.ui.activity;
 
+import android.Manifest;
+import android.annotation.TargetApi;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.view.View;
-import android.support.design.widget.NavigationView;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.util.Log;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 
 import com.perficient.meetingschedulear.R;
+import com.perficient.meetingschedulear.view.GLView;
 
-public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+import java.util.HashMap;
+
+import cn.easyar.Engine;
+
+public class MainActivity extends AppCompatActivity {
+
+    private static final String TAG = MainActivity.class.getSimpleName();
+
+    private static String key = "R5cODEymtcC8BTfdqgzdKoHDO88zL0nKdHGRs5mjgHRylLeWzGWxFViGEAbD66T1zqwA0Ns81YNHHyB6s8YT07ykBTsHGqJ8zYzcVMH03mOYY1HYrWzaB2vru0xQBeHcVFWCODTqG87cFofjiUDOE6rNAtdPgHF3JnnIKAE7hbOyA6WXoV6PmGoOwJevpUuflqLenxnB";
+
+    private GLView glView;
+
+    /**
+     * A permission map to hold request code and its callback
+     * */
+    private HashMap<Integer, PermissionCallback> permissionCallbacks = new HashMap<>();
+    private int permissionRequestCodeSerial = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
+                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        if (!Engine.initialize(this, key)) {
+            Log.e(TAG, "Initialization Failed.");
+        }
+        glView = new GLView(this);
+
+        requestCameraPermission(new PermissionCallback() {
             @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+            public void onSuccess() {
+                ((ViewGroup) findViewById(R.id.preview)).addView(glView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT));
+            }
+
+            @Override
+            public void onFailure() {
             }
         });
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
     }
 
-    @Override
-    public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
+    /**
+     * If it's API 23 and above we should request camera permission dynamically
+     * */
+    @TargetApi(23)
+    private void requestCameraPermission(PermissionCallback callback) {
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                int requestCode = permissionRequestCodeSerial;
+                permissionRequestCodeSerial += 1;
+                permissionCallbacks.put(requestCode, callback);
+                requestPermissions(new String[]{Manifest.permission.CAMERA}, requestCode);
+            } else {
+                callback.onSuccess();
+            }
         } else {
-            super.onBackPressed();
+            callback.onSuccess();
         }
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (permissionCallbacks.containsKey(requestCode)) {
+            PermissionCallback callback = permissionCallbacks.get(requestCode);
+            permissionCallbacks.remove(requestCode);
+            boolean executed = false;
+            for (int result : grantResults) {
+                if (result != PackageManager.PERMISSION_GRANTED) {
+                    executed = true;
+                    callback.onFailure();
+                }
+            }
+            if (!executed) {
+                callback.onSuccess();
+            }
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+    protected void onResume() {
+        super.onResume();
+        if (glView != null) {
+            glView.onResume();
         }
-
-        return super.onOptionsItemSelected(item);
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
-
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+    protected void onPause() {
+        if (glView != null) {
+            glView.onPause();
         }
+        super.onPause();
+    }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
+    private interface PermissionCallback {
+        void onSuccess();
+
+        void onFailure();
     }
 }
