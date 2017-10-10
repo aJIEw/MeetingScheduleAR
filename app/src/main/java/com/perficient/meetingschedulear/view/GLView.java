@@ -2,6 +2,7 @@ package com.perficient.meetingschedulear.view;
 
 import android.content.Context;
 import android.opengl.GLSurfaceView;
+import android.widget.TextView;
 
 import com.perficient.meetingschedulear.util.ARManager;
 
@@ -21,15 +22,31 @@ public class GLView extends GLSurfaceView {
 
     private final ARManager mARManager;
 
-    public GLView(Context context) {
+    private ARManager.ViewRefresher mViewRefresher;
+
+    private TextView mMeetingInfoTv;
+
+    public GLView(Context context, TextView textView) {
         super(context);
 
         mContext = context;
+        mMeetingInfoTv = textView;
 
         setEGLContextFactory(new ContextFactory());
         setEGLConfigChooser(new ConfigChooser());
 
-        mARManager = new ARManager();
+        mARManager = new ARManager(context);
+        mViewRefresher = new ARManager.ViewRefresher() {
+            @Override
+            public void refresh(final String text) {
+                mMeetingInfoTv.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mMeetingInfoTv.setText(text);
+                    }
+                });
+            }
+        };
 
         this.setRenderer(new GLSurfaceView.Renderer() {
             @Override
@@ -61,7 +78,7 @@ public class GLView extends GLSurfaceView {
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         synchronized (mARManager) {
-            if (mARManager.initialize()) {
+            if (mARManager.initialize(mViewRefresher)) {
                 mARManager.start();
             }
         }

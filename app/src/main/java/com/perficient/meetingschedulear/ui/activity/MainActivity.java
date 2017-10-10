@@ -10,6 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.TextView;
 
 import com.perficient.meetingschedulear.R;
 import com.perficient.meetingschedulear.view.GLView;
@@ -42,7 +43,10 @@ public class MainActivity extends AppCompatActivity {
         if (!Engine.initialize(this, key)) {
             Log.e(TAG, "Initialization Failed.");
         }
-        glView = new GLView(this);
+
+        final TextView textView = (TextView) findViewById(R.id.activity_main_textView);
+
+        glView = new GLView(this, textView);
 
         requestCameraPermission(new PermissionCallback() {
             @Override

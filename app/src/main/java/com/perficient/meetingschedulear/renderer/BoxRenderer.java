@@ -27,6 +27,8 @@ public class BoxRenderer {
     private int vbo_color_box;
     private int vbo_faces_box;
 
+    private boolean isRendered;
+
     private String box_vert = "uniform mat4 trans;\n"
             + "uniform mat4 proj;\n"
             + "attribute vec4 coord;\n"
@@ -181,6 +183,12 @@ public class BoxRenderer {
                     i * 4 * 2                   // offset for VBO indices
             );
         }
+
+        isRendered = true;
+    }
+
+    public boolean boxRendered() {
+        return isRendered;
     }
 
     private float[] flatten(float[][] a) {

@@ -1,8 +1,10 @@
 package com.perficient.meetingschedulear.util;
 
+import android.content.Context;
 import android.opengl.GLES20;
 import android.util.Log;
 
+import com.perficient.meetingschedulear.R;
 import com.perficient.meetingschedulear.renderer.BoxRenderer;
 
 import java.util.ArrayList;
@@ -26,17 +28,26 @@ public class ARManager {
     private int rotation = 0;
     private Vec4I viewport = new Vec4I(0, 0, 1280, 720);
 
-    public ARManager() {
+    private ViewRefresher mViewRefresher;
+    private Context mContext;
+
+    public interface ViewRefresher{
+        void refresh(String text);
+    }
+
+    public ARManager(Context context) {
+        mContext = context;
         trackers = new ArrayList<>();
     }
 
     /**
      * initialize CameraDevice, CameraFrameStreamer and ImageTracker
      */
-    public boolean initialize() {
+    public boolean initialize(ViewRefresher viewRefresher) {
 
         Log.d(TAG, "initialize: ");
 
+        mViewRefresher = viewRefresher;
         camera = new CameraDevice();
         streamer = new CameraFrameStreamer();
         streamer.attachCamera(camera); // Connect CameraDevice to this streamer
@@ -107,9 +118,6 @@ public class ARManager {
      * Here we render the graphics through Renderer
      */
     public void render() {
-
-        Log.d(TAG, "render: ");
-
         GLES20.glClearColor(0.f, 0.f, 0.f, 1.f);
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
@@ -132,6 +140,7 @@ public class ARManager {
 
         // get the newest frame from streamer
         Frame frame = streamer.peek();
+        Log.d(TAG, "render: timestamp = " + frame.timestamp() + ", index = " + frame.index());
         try {
             // update viewport
             updateViewport();
@@ -169,11 +178,36 @@ public class ARManager {
                                 targetInstance.poseGL(),
                                 // target size, width and height in 2x1 float vector
                                 imagetarget.size());
+
+                        if (box_renderer.boxRendered()) {
+                            Log.d(TAG, "render: do some work to fetch text");
+
+                            // here we get the name and and decide what text to fetch
+                            String text = fetchText(imagetarget.name());
+
+                            mViewRefresher.refresh(text);
+                        }
                     }
                 }
             }
         } finally {
             frame.dispose();
+        }
+    }
+
+    /**
+     * make api call
+     * */
+    private String fetchText(String filter) {
+        switch (filter) {
+            case "sp0":
+                return mContext.getString(R.string.tools_meeting_info_text1);
+            case "sp1":
+                return mContext.getString(R.string.tools_meeting_info_text2);
+            case "arwhale":
+                return mContext.getString(R.string.tools_meeting_info_text3);
+            default:
+                return "";
         }
     }
 
