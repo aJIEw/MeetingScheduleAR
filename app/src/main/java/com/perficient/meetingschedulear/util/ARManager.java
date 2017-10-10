@@ -5,7 +5,7 @@ import android.opengl.GLES20;
 import android.util.Log;
 
 import com.perficient.meetingschedulear.R;
-import com.perficient.meetingschedulear.renderer.BoxRenderer;
+import com.perficient.meetingschedulear.renderer.BlackboardRenderer;
 
 import java.util.ArrayList;
 
@@ -22,7 +22,7 @@ public class ARManager {
     private CameraFrameStreamer streamer;
     private ArrayList<ImageTracker> trackers;
     private Renderer renderer;
-    private BoxRenderer box_renderer;
+    private BlackboardRenderer box_renderer;
     private boolean viewport_changed = false;
     private Vec2I view_size = new Vec2I(0, 0);
     private int rotation = 0;
@@ -99,7 +99,7 @@ public class ARManager {
             renderer.dispose();
         }
         renderer = new Renderer();
-        box_renderer = new BoxRenderer();
+        box_renderer = new BlackboardRenderer(mContext);
     }
 
     /**
