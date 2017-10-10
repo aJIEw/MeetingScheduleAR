@@ -14,6 +14,22 @@
     {
       "image" : "Data/2d/humpback_whale.jpg",
       "name" : "arwhale"
+    },
+    {
+      "image" : "Data/2d/Alterra_Ticket_1.jpg",
+      "name" : "at1"
+    },
+    {
+      "image" : "Data/2d/Alterra_Postcard_2.jpg",
+      "name" : "at2"
+    },
+    {
+      "image" : "Data/2d/Alterra_Postcard_3.jpg",
+      "name" : "at3"
+    },
+    {
+      "image" : "Data/2d/Alterra_Postcard_4.jpg",
+      "name" : "at4"
     }
   ]
 }

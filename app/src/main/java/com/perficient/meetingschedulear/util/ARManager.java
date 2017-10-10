@@ -100,7 +100,6 @@ public class ARManager {
         }
         renderer = new Renderer();
         box_renderer = new BoxRenderer();
-        box_renderer.init();
     }
 
     /**
