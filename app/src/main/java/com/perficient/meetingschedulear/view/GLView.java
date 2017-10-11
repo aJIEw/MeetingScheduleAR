@@ -2,6 +2,8 @@ package com.perficient.meetingschedulear.view;
 
 import android.content.Context;
 import android.opengl.GLSurfaceView;
+import android.support.v4.view.GestureDetectorCompat;
+import android.view.MotionEvent;
 import android.widget.TextView;
 
 import com.perficient.meetingschedulear.util.ARManager;
@@ -14,6 +16,8 @@ import javax.microedition.khronos.opengles.GL10;
 
 import cn.easyar.Engine;
 
+import static android.view.GestureDetector.SimpleOnGestureListener;
+
 public class GLView extends GLSurfaceView {
 
     private static final String TAG = GLView.class.getSimpleName();
@@ -25,6 +29,8 @@ public class GLView extends GLSurfaceView {
     private ARManager.ViewRefresher mViewRefresher;
 
     private TextView mMeetingInfoTv;
+
+    private GestureDetectorCompat mGestureDetectorCompat;
 
     public GLView(Context context, TextView textView) {
         super(context);
@@ -72,7 +78,15 @@ public class GLView extends GLSurfaceView {
         });
 
         this.setZOrderMediaOverlay(true);
+        mGestureDetectorCompat = new GestureDetectorCompat(context, new SimpleOnGestureListener(){
+            @Override
+            public boolean onDoubleTap(MotionEvent e) {
+                return super.onDoubleTap(e);
+            }
+        });
     }
+
+
 
     @Override
     protected void onAttachedToWindow() {
@@ -106,7 +120,7 @@ public class GLView extends GLSurfaceView {
     }
 
     /**
-     * Custom context for OpenGL ES
+     * Custom sContext for OpenGL ES
      */
     private static class ContextFactory implements GLSurfaceView.EGLContextFactory {
         private static int EGL_CONTEXT_CLIENT_VERSION = 0x3098;

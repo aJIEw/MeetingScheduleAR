@@ -2,12 +2,15 @@ package com.perficient.meetingschedulear.ui.activity;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v4.view.GestureDetectorCompat;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.TextView;
@@ -19,13 +22,15 @@ import java.util.HashMap;
 
 import cn.easyar.Engine;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
     private static String key = "R5cODEymtcC8BTfdqgzdKoHDO88zL0nKdHGRs5mjgHRylLeWzGWxFViGEAbD66T1zqwA0Ns81YNHHyB6s8YT07ykBTsHGqJ8zYzcVMH03mOYY1HYrWzaB2vru0xQBeHcVFWCODTqG87cFofjiUDOE6rNAtdPgHF3JnnIKAE7hbOyA6WXoV6PmGoOwJevpUuflqLenxnB";
 
     private GLView glView;
+
+    private GestureDetectorCompat mGestureDetectorCompat;
 
     /**
      * A permission map to hold request code and its callback
@@ -46,6 +51,15 @@ public class MainActivity extends AppCompatActivity {
 
         final TextView textView = (TextView) findViewById(R.id.activity_main_textView);
 
+        mGestureDetectorCompat = new GestureDetectorCompat(this, new GestureDetector.SimpleOnGestureListener(){
+            @Override
+            public boolean onDoubleTap(MotionEvent e) {
+                Log.w(TAG, "onDoubleTap: ");
+                startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+                return true;
+            }
+        });
+
         glView = new GLView(this, textView);
 
         requestCameraPermission(new PermissionCallback() {
@@ -59,6 +73,12 @@ public class MainActivity extends AppCompatActivity {
             public void onFailure() {
             }
         });
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        mGestureDetectorCompat.onTouchEvent(event);
+        return super.onTouchEvent(event);
     }
 
     /**

@@ -1,11 +1,12 @@
 <resources>
     <string name="app_name">Meeting Schedule AR</string>
-    <string name="title_activity_main">MainActivity</string>
 
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="title_setting_activity">Settings</string>
+    <string name="title_recent_scanned">Recent Scanned</string>
 
     <string name="action_settings">Settings</string>
+    <string name="pref_title_enable_flashlight">Enable Flashlight</string>
 
     <string name="tools_meeting_info_text1">Board Room\n9:00 - 9:30 MeetingScheduleAR\n10:00 - 11:00 Knowledge Sharing</string>
     <string name="tools_meeting_info_text2">Training Room\n13:00 - 13:30 Training Class 1\n14:00 - 15:00 Training Class2</string>

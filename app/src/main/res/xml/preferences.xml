@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Switch for flash light -->
+    <SwitchPreference
+        android:title="@string/pref_title_enable_flashlight"
+        android:key="pref_flash_light_on"
+        android:defaultValue="false"
+        />
+
+    <Preference android:title="Recent Scanned">
+        <intent
+            android:action="com.perficient.meetingschedulear.ui.activity.ScannedActivity"
+            android:targetPackage="com.perficient.meetingschedulear"
+            android:targetClass="com.perficient.meetingschedulear.ui.activity.ScannedActivity"/>
+    </Preference>
+</PreferenceScreen>
