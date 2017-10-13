@@ -1,16 +1,18 @@
 package com.perficient.meetingschedulear.util;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.drawable.Drawable;
+import android.graphics.*;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
 
+import com.perficient.meetingschedulear.BaseApplication;
+
+import java.util.ArrayList;
+import java.util.Scanner;
+
 public class TextureHelper {
-    public static int loadTexture(final Context context, final int resourceId) {
+
+    public static int loadTexture(final Context context, final int resourceId, String text) {
         final int[] textureHandle = new int[1];
 
         GLES20.glGenTextures(1, textureHandle, 0);
@@ -20,16 +22,22 @@ public class TextureHelper {
             options.inScaled = false;    // No pre-scaling
 
             // Read in the resource
-            final Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), resourceId, options);
+            Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), resourceId, options);
+            ArrayList<String> textList = new ArrayList<>();
+            Scanner scanner = new Scanner(text).useDelimiter("\\n");
+            while (scanner.hasNext()) {
+                textList.add(scanner.next());
+            }
+            bitmap = drawText(bitmap, textList);
 
             // Bind to the texture in OpenGL
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
 
             // Set filtering
-            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);// GL_NEAREST make the low resolution texture more clear on a large object
             GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
 
-            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);// stretched edge pattern
             GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
 
             // Load the bitmap into the bound texture.
@@ -46,51 +54,40 @@ public class TextureHelper {
         return textureHandle[0];
     }
 
-    public static int loadText(final Context context, String text, int drawableRes) {
-        final int[] textureHandle = new int[1];
+    private static Bitmap drawText(Bitmap bitmap, ArrayList<String> text) {
+        float scale = BaseApplication.getResourcesObject().getDisplayMetrics().density;
 
-        GLES20.glGenTextures(1, textureHandle, 0);
+        Bitmap.Config bitmapConfig =
+                bitmap.getConfig();
+        // set default bitmap config if none
+        if (bitmapConfig == null) {
+            bitmapConfig = android.graphics.Bitmap.Config.ARGB_8888;
+        }
+        // resource bitmaps are imutable,
+        // so we need to convert it to mutable one
+        bitmap = bitmap.copy(bitmapConfig, true);
 
-        if (textureHandle[0] != 0) {
+        Canvas canvas = new Canvas(bitmap);
+        // new antialised Paint
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        // text color - #3D3D3D
+        paint.setColor(Color.rgb(255, 255, 255));
+        // text size in pixels
+        paint.setTextSize((int) (14 * scale));
+        // text shadow
+        paint.setShadowLayer(1f, 0f, 1f, Color.WHITE);
 
-            // Create an empty, mutable bitmap
-            Bitmap bitmap = Bitmap.createBitmap(256, 256, Bitmap.Config.ARGB_4444);
-            // get a canvas to paint over the bitmap
-            Canvas canvas = new Canvas(bitmap);
-            bitmap.eraseColor(0);
-
-            // get a background image from resources
-            // note the image format must match the bitmap format
-            Drawable background = context.getResources().getDrawable(drawableRes);
-            background.setBounds(0, 0, 256, 256);
-            background.draw(canvas); // draw the background to our bitmap
-
-            // Draw the text
-            Paint textPaint = new Paint();
-            textPaint.setTextSize(32);
-            textPaint.setAntiAlias(true);
-            textPaint.setARGB(0xff, 0x00, 0x00, 0x00);
-            // draw the text centered
-            canvas.drawText(text, 16,112, textPaint);
-
-            // Bind to the texture in OpenGL
-            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
-
-            // Set filtering
-            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
-            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
-
-            // Load the bitmap into the bound texture.
-            GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
-
-            // Recycle the bitmap, since its data has been loaded into OpenGL.
-            bitmap.recycle();
+        int x = 0;
+        int y = 0;
+        for (int i = 0; i < text.size(); i++) {
+            String oneLine = text.get(i);
+            Rect bounds = new Rect();
+            paint.getTextBounds(oneLine, 0, oneLine.length(), bounds);
+            x = (bitmap.getWidth() - bounds.width()) / 2;
+            y = (bitmap.getHeight() + bounds.height()) / 2 + i * 50;
+            canvas.drawText(oneLine, x, y, paint);
         }
 
-        if (textureHandle[0] == 0) {
-            throw new RuntimeException("Error loading texture.");
-        }
-
-        return textureHandle[0];
+        return bitmap;
     }
 }

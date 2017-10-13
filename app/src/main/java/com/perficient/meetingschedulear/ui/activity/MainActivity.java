@@ -13,7 +13,6 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.TextView;
 
 import com.perficient.meetingschedulear.R;
 import com.perficient.meetingschedulear.view.GLView;
@@ -34,7 +33,7 @@ public class MainActivity extends BaseActivity {
 
     /**
      * A permission map to hold request code and its callback
-     * */
+     */
     private HashMap<Integer, PermissionCallback> permissionCallbacks = new HashMap<>();
     private int permissionRequestCodeSerial = 0;
 
@@ -49,9 +48,7 @@ public class MainActivity extends BaseActivity {
             Log.e(TAG, "Initialization Failed.");
         }
 
-        final TextView textView = (TextView) findViewById(R.id.activity_main_textView);
-
-        mGestureDetectorCompat = new GestureDetectorCompat(this, new GestureDetector.SimpleOnGestureListener(){
+        mGestureDetectorCompat = new GestureDetectorCompat(this, new GestureDetector.SimpleOnGestureListener() {
             @Override
             public boolean onDoubleTap(MotionEvent e) {
                 Log.w(TAG, "onDoubleTap: ");
@@ -60,13 +57,15 @@ public class MainActivity extends BaseActivity {
             }
         });
 
-        glView = new GLView(this, textView);
+        glView = new GLView(this);
 
         requestCameraPermission(new PermissionCallback() {
             @Override
             public void onSuccess() {
-                ((ViewGroup) findViewById(R.id.preview)).addView(glView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT));
+                ((ViewGroup) findViewById(R.id.preview)).addView(
+                        glView, new ViewGroup.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.MATCH_PARENT));
             }
 
             @Override
@@ -83,7 +82,7 @@ public class MainActivity extends BaseActivity {
 
     /**
      * If it's API 23 and above we should request camera permission dynamically
-     * */
+     */
     @TargetApi(23)
     private void requestCameraPermission(PermissionCallback callback) {
         if (Build.VERSION.SDK_INT >= 23) {

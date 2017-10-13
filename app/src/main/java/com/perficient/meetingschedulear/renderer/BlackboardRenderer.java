@@ -3,6 +3,7 @@ package com.perficient.meetingschedulear.renderer;
 
 import android.content.Context;
 import android.opengl.GLES20;
+import android.util.Log;
 
 import com.perficient.meetingschedulear.R;
 import com.perficient.meetingschedulear.util.TextureHelper;
@@ -13,6 +14,7 @@ import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
 import cn.easyar.Matrix44F;
+import cn.easyar.Target;
 import cn.easyar.Vec2F;
 
 /**
@@ -20,6 +22,8 @@ import cn.easyar.Vec2F;
  * FBO: Fragment Buffer Object
  */
 public class BlackboardRenderer {
+
+    private static final String TAG = BlackboardRenderer.class.getSimpleName();
 
     /**
      * This is a handle to our blackboard shading program.
@@ -67,6 +71,10 @@ public class BlackboardRenderer {
      * VBO for cube faces
      */
     private int mFacesVBO;
+    /**
+     * VBO for cube's text
+     * */
+    private int mTextVBO;
 
     private final FloatBuffer mCubeTextureCoordinates;
 
@@ -85,7 +93,7 @@ public class BlackboardRenderer {
                     -1.0f, -1.0f
             };
 
-    private boolean mHasRendered;
+    private String mRenderText= "";
 
     private Context mContext;
 
@@ -157,7 +165,6 @@ public class BlackboardRenderer {
 
         mTextureUniformHandle = GLES20.glGetUniformLocation(mProgramHandle, "u_Texture");
         mTextureCoordinateHandle = GLES20.glGetAttribLocation(mProgramHandle, "a_TexCoordinate");
-        mTextureDataHandle = TextureHelper.loadTexture(mContext, R.drawable.texture_blackboard);
 
         // create buffer for coordinates
         mCoordVBO = generateOneBuffer();
@@ -253,17 +260,17 @@ public class BlackboardRenderer {
         GLES20.glEnableVertexAttribArray(mColorHandle);
         GLES20.glVertexAttribPointer(mColorHandle, 4, GLES20.GL_UNSIGNED_BYTE, true, 0, 0);
 
-        // view transformation
+        // view transformation, 4 float vector
         GLES20.glUniformMatrix4fv(mMVMatrixHandle, 1, false, cameraView.data, 0);
         // projection
         GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, projectionMatrix.data, 0);
 
         // Set the active texture unit to texture unit 0.
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+        //GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         // Bind the texture to this unit.
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureDataHandle);
+        //GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureDataHandle);
         // Tell the texture uniform sampler to use this texture in the shader by binding to texture unit 0.
-        GLES20.glUniform1i(mTextureUniformHandle, 0);
+        //GLES20.glUniform1i(mTextureUniformHandle, 0);
 
         /*
         * Here we draw the faces with GL_TRIANGLE_FAN, it means we draw each triangle based on
@@ -279,8 +286,6 @@ public class BlackboardRenderer {
                     i * 4 * 2                   // offset for VBO indices
             );
         }
-
-        mHasRendered = true;
     }
 
     private void drawTexture() {
@@ -298,8 +303,13 @@ public class BlackboardRenderer {
         GLES20.glUniform1i(mTextureUniformHandle, 0);
     }
 
-    public boolean boxRendered() {
-        return mHasRendered;
+    public void loadTexture(Target target) {
+        Log.w(TAG, "loadTexture: " + target.name());
+        mTextureDataHandle = TextureHelper.loadTexture(mContext, R.drawable.texture_blackboard, mRenderText);
+    }
+
+    public void setRenderText(String text) {
+        mRenderText = text;
     }
 
     private float[] flatten(float[][] a) {

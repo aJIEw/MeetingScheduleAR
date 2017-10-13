@@ -18,6 +18,8 @@ public class ARManager {
 
     private static final String TAG = ARManager.class.getSimpleName();
 
+    private static final String TARGET_RENDERED = "rendered";
+
     private CameraDevice camera;
     private CameraFrameStreamer streamer;
     private ArrayList<ImageTracker> trackers;
@@ -27,13 +29,9 @@ public class ARManager {
     private Vec2I view_size = new Vec2I(0, 0);
     private int rotation = 0;
     private Vec4I viewport = new Vec4I(0, 0, 1280, 720);
+    private ImageTarget mPreviousTarget;
 
-    private ViewRefresher mViewRefresher;
     private Context mContext;
-
-    public interface ViewRefresher{
-        void refresh(String text);
-    }
 
     public ARManager(Context context) {
         mContext = context;
@@ -43,11 +41,10 @@ public class ARManager {
     /**
      * initialize CameraDevice, CameraFrameStreamer and ImageTracker
      */
-    public boolean initialize(ViewRefresher viewRefresher) {
+    public boolean initialize() {
 
         Log.d(TAG, "initialize: ");
 
-        mViewRefresher = viewRefresher;
         camera = new CameraDevice();
         streamer = new CameraFrameStreamer();
         streamer.attachCamera(camera); // Connect CameraDevice to this streamer
@@ -157,14 +154,24 @@ public class ARManager {
                 int status = targetInstance.status();
                 if (status == TargetStatus.Tracked) {
                     Target target = targetInstance.target();
-                    ImageTarget imagetarget = target instanceof ImageTarget ?
+                    ImageTarget imageTarget = target instanceof ImageTarget ?
                             (ImageTarget) (target)
                             :
                             null;
-                    if (imagetarget == null) {
+                    if (imageTarget == null) {
                         continue;
                     }
                     if (box_renderer != null) {
+
+                        box_renderer.setRenderText(fetchText(imageTarget.name()));
+
+                        // load target texture once only to reduce memory usage
+                        if (mPreviousTarget == null) {
+                            box_renderer.loadTexture(imageTarget);
+                        } else if (!imageTarget.name().equals(mPreviousTarget.name())) {
+                            box_renderer.loadTexture(imageTarget);
+                        }
+
                         /*
                         * Render the box, here we pass the Camera Coordinates
                         * along with the Projection Matrix
@@ -176,16 +183,10 @@ public class ARManager {
                                 // get OpenGL coordinate matrix
                                 targetInstance.poseGL(),
                                 // target size, width and height in 2x1 float vector
-                                imagetarget.size());
+                                imageTarget.size());
 
-                        if (box_renderer.boxRendered()) {
-                            Log.d(TAG, "render: do some work to fetch text");
-
-                            // here we get the name and and decide what text to fetch
-                            String text = fetchText(imagetarget.name());
-
-                            mViewRefresher.refresh(text);
-                        }
+                        mPreviousTarget = imageTarget;
+                        break;
                     }
                 }
             }
@@ -196,9 +197,9 @@ public class ARManager {
 
     /**
      * make api call
-     * */
-    private String fetchText(String filter) {
-        switch (filter) {
+     */
+    private String fetchText(String targetName) {
+        switch (targetName) {
             case "sp0":
                 return mContext.getString(R.string.tools_meeting_info_text1);
             case "sp1":
