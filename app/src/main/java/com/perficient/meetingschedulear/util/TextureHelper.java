@@ -57,37 +57,40 @@ public class TextureHelper {
     private static Bitmap drawText(Bitmap bitmap, ArrayList<String> text) {
         float scale = BaseApplication.getResourcesObject().getDisplayMetrics().density;
 
-        Bitmap.Config bitmapConfig =
-                bitmap.getConfig();
+        float titleY = bitmap.getHeight() * 0.4f;
+
+        Bitmap.Config bitmapConfig = bitmap.getConfig();
         // set default bitmap config if none
         if (bitmapConfig == null) {
             bitmapConfig = android.graphics.Bitmap.Config.ARGB_8888;
         }
-        // resource bitmaps are imutable,
+        // resource bitmaps are immutable,
         // so we need to convert it to mutable one
         bitmap = bitmap.copy(bitmapConfig, true);
 
         Canvas canvas = new Canvas(bitmap);
-        // new antialised Paint
+        // new anti-aliased Paint
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        // text color - #3D3D3D
+        // text color - white
         paint.setColor(Color.rgb(255, 255, 255));
         // text size in pixels
         paint.setTextSize((int) (14 * scale));
         // text shadow
         paint.setShadowLayer(1f, 0f, 1f, Color.WHITE);
 
-        int x = 0;
-        int y = 0;
+        // draw each line
+        float x = 0;
+        float y = 0;
         for (int i = 0; i < text.size(); i++) {
             String oneLine = text.get(i);
             Rect bounds = new Rect();
             paint.getTextBounds(oneLine, 0, oneLine.length(), bounds);
             x = (bitmap.getWidth() - bounds.width()) / 2;
-            y = (bitmap.getHeight() + bounds.height()) / 2 + i * 50;
+            y = titleY + i * 50;
             canvas.drawText(oneLine, x, y, paint);
         }
 
+        // return this bitmap that has text drawn
         return bitmap;
     }
 }

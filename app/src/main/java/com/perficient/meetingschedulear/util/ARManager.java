@@ -2,12 +2,13 @@ package com.perficient.meetingschedulear.util;
 
 import android.content.Context;
 import android.opengl.GLES20;
+import android.support.annotation.DrawableRes;
 import android.util.Log;
 
 import com.perficient.meetingschedulear.R;
 import com.perficient.meetingschedulear.renderer.BlackboardRenderer;
 
-import java.util.ArrayList;
+import java.util.*;
 
 import cn.easyar.*;
 
@@ -20,22 +21,23 @@ public class ARManager {
 
     private static final String TARGET_RENDERED = "rendered";
 
-    private CameraDevice camera;
-    private CameraFrameStreamer streamer;
-    private ArrayList<ImageTracker> trackers;
-    private Renderer renderer;
-    private BlackboardRenderer box_renderer;
-    private boolean viewport_changed = false;
-    private Vec2I view_size = new Vec2I(0, 0);
-    private int rotation = 0;
-    private Vec4I viewport = new Vec4I(0, 0, 1280, 720);
+    private CameraDevice mCamera;
+    private CameraFrameStreamer mStreamer;
+    private ArrayList<ImageTracker> mImageTrackers;
+    private Renderer mRenderer;
+    private BlackboardRenderer mBlackboardRenderer;
+
+    private boolean mViewportChanged = false;
+    private Vec2I mViewSize = new Vec2I(0, 0);
+    private int mRotation = 0;
+    private Vec4I mViewport = new Vec4I(0, 0, 1280, 720);
     private ImageTarget mPreviousTarget;
 
     private Context mContext;
 
     public ARManager(Context context) {
         mContext = context;
-        trackers = new ArrayList<>();
+        mImageTrackers = new ArrayList<>();
     }
 
     /**
@@ -45,23 +47,24 @@ public class ARManager {
 
         Log.d(TAG, "initialize: ");
 
-        camera = new CameraDevice();
-        streamer = new CameraFrameStreamer();
-        streamer.attachCamera(camera); // Connect CameraDevice to this streamer
+        mCamera = new CameraDevice();
+        mStreamer = new CameraFrameStreamer();
+        mStreamer.attachCamera(mCamera); // Connect CameraDevice to this mStreamer
 
-        boolean status = camera.open(CameraDeviceType.Default); // Open camera
-        camera.setSize(new Vec2I(1280, 720));
+        boolean status = mCamera.open(CameraDeviceType.Default); // Open mCamera
+        mCamera.setSize(new Vec2I(1280, 720));
 
         if (!status) {
             return false;
         }
         ImageTracker tracker = new ImageTracker();
-        tracker.attachStreamer(streamer); // connect streamer to the ImageTracker
+        tracker.attachStreamer(mStreamer); // connect mStreamer to the ImageTracker
 
-        // load trackers
+        // load into tracker
+        // or we should download images from the server and load them into tracker
         loadAllFromJsonFile(tracker, "Data/targets.json");
 
-        trackers.add(tracker);
+        mImageTrackers.add(tracker);
 
         return true;
     }
@@ -73,12 +76,12 @@ public class ARManager {
 
         Log.d(TAG, "start: ");
 
-        boolean status = (camera != null) && camera.start();
-        status &= (streamer != null) && streamer.start();
+        boolean status = (mCamera != null) && mCamera.start();
+        status &= (mStreamer != null) && mStreamer.start();
 
-        camera.setFocusMode(CameraDeviceFocusMode.Continousauto);// continuously auto focus
+        mCamera.setFocusMode(CameraDeviceFocusMode.Continousauto);// continuously auto focus
 
-        for (ImageTracker tracker : trackers) {
+        for (ImageTracker tracker : mImageTrackers) {
             status &= tracker.start();// for each ImageTracker, start track ImageTarget
         }
 
@@ -86,17 +89,18 @@ public class ARManager {
     }
 
     /**
-     * Initiate renderer
+     * Initiate mRenderer
      */
     public void initGL() {
 
         Log.d(TAG, "initGL: ");
 
-        if (renderer != null) {
-            renderer.dispose();
+        if (mRenderer != null) {
+            mRenderer.dispose();
         }
-        renderer = new Renderer();
-        box_renderer = new BlackboardRenderer(mContext);
+        mRenderer = new Renderer();
+        mBlackboardRenderer = new BlackboardRenderer(mContext);
+        mPreviousTarget = null;
     }
 
     /**
@@ -106,8 +110,8 @@ public class ARManager {
 
         Log.d(TAG, "resizeGL: ");
 
-        view_size = new Vec2I(width, height);
-        viewport_changed = true;
+        mViewSize = new Vec2I(width, height);
+        mViewportChanged = true;
     }
 
     /**
@@ -117,37 +121,36 @@ public class ARManager {
         GLES20.glClearColor(0.f, 0.f, 0.f, 1.f);
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
-        if (renderer != null) {
-            Vec4I default_viewport = new Vec4I(0, 0, view_size.data[0], view_size.data[1]);
+        if (mRenderer != null) {
+            Vec4I default_viewport = new Vec4I(0, 0, mViewSize.data[0], mViewSize.data[1]);
             GLES20.glViewport(
                     default_viewport.data[0],
                     default_viewport.data[1],
                     default_viewport.data[2],
                     default_viewport.data[3]);
 
-            if (renderer.renderErrorMessage(default_viewport)) {
+            if (mRenderer.renderErrorMessage(default_viewport)) {
                 return;
             }
         }
 
-        if (streamer == null) {
+        if (mStreamer == null) {
             return;
         }
 
-        // get the newest frame from streamer
-        Frame frame = streamer.peek();
-        Log.d(TAG, "render: timestamp = " + frame.timestamp() + ", index = " + frame.index());
+        // get the newest frame from mStreamer
+        Frame frame = mStreamer.peek();
         try {
-            // update viewport
+            // update mViewport
             updateViewport();
 
-            // set viewport
-            GLES20.glViewport(viewport.data[0], viewport.data[1], viewport.data[2], viewport.data[3]);
+            // set mViewport
+            GLES20.glViewport(mViewport.data[0], mViewport.data[1], mViewport.data[2], mViewport.data[3]);
 
             // render the frame into fragment buffer object
             // will be called in every frame
-            if (renderer != null) {
-                renderer.render(frame, viewport);
+            if (mRenderer != null) {
+                mRenderer.render(frame, mViewport);
             }
 
             for (TargetInstance targetInstance : frame.targetInstances()) {
@@ -161,15 +164,13 @@ public class ARManager {
                     if (imageTarget == null) {
                         continue;
                     }
-                    if (box_renderer != null) {
+                    if (mBlackboardRenderer != null) {
 
-                        box_renderer.setRenderText(fetchText(imageTarget.name()));
-
+                        TextTextureContainer resContainer = fetchResources(imageTarget.name());
                         // load target texture once only to reduce memory usage
-                        if (mPreviousTarget == null) {
-                            box_renderer.loadTexture(imageTarget);
-                        } else if (!imageTarget.name().equals(mPreviousTarget.name())) {
-                            box_renderer.loadTexture(imageTarget);
+                        if (mPreviousTarget == null ||
+                                !imageTarget.name().equals(mPreviousTarget.name())) {
+                            mBlackboardRenderer.loadTexture(resContainer.getText(), resContainer.getTexture());
                         }
 
                         /*
@@ -177,9 +178,9 @@ public class ARManager {
                         * along with the Projection Matrix
                         * and the 2 x 1 float vector
                         * */
-                        box_renderer.render(
+                        mBlackboardRenderer.render(
                                 // get Projection Matrix, pass near plane and far plane
-                                camera.projectionGL(0.2f, 500.f),
+                                mCamera.projectionGL(0.2f, 500.f),
                                 // get OpenGL coordinate matrix
                                 targetInstance.poseGL(),
                                 // target size, width and height in 2x1 float vector
@@ -195,20 +196,32 @@ public class ARManager {
         }
     }
 
-    /**
-     * make api call
-     */
-    private String fetchText(String targetName) {
+    // TODO: 2017/10/15 replace this with API call
+    private TextTextureContainer fetchResources(String targetName) {
+        TextTextureContainer container = new TextTextureContainer();
         switch (targetName) {
             case "sp0":
-                return mContext.getString(R.string.tools_meeting_info_text1);
+                container.setText(mContext.getString(R.string.tools_meeting_info_text1));
+                container.setTexture(R.drawable.texture_chalkboard);
+                break;
             case "sp1":
-                return mContext.getString(R.string.tools_meeting_info_text2);
-            case "arwhale":
-                return mContext.getString(R.string.tools_meeting_info_text3);
+                container.setText(mContext.getString(R.string.tools_meeting_info_text2));
+                container.setTexture(R.drawable.texture_chalkboard);
+                break;
+            case "whale":
+                container.setText(mContext.getString(R.string.tools_meeting_info_text3));
+                container.setTexture(R.drawable.texture_blackboard);
+                break;
+            case "desktop":
+                container.setText(mContext.getString(R.string.tools_meeting_info_text4));
+                container.setTexture(R.drawable.texture_blackboard);
+                break;
             default:
-                return "";
+                container.setText("");
+                container.setTexture(R.drawable.texture_blackboard);
+                break;
         }
+        return container;
     }
 
     /**
@@ -219,11 +232,11 @@ public class ARManager {
         Log.d(TAG, "stop: ");
 
         boolean status = true;
-        for (ImageTracker tracker : trackers) {
+        for (ImageTracker tracker : mImageTrackers) {
             status &= tracker.stop();
         }
-        status &= (streamer != null) && streamer.stop();
-        status &= (camera != null) && camera.stop();
+        status &= (mStreamer != null) && mStreamer.stop();
+        status &= (mCamera != null) && mCamera.stop();
         return status;
     }
 
@@ -234,22 +247,22 @@ public class ARManager {
 
         Log.d(TAG, "dispose: ");
 
-        for (ImageTracker tracker : trackers) {
+        for (ImageTracker tracker : mImageTrackers) {
             tracker.dispose();
         }
-        trackers.clear();
-        box_renderer = null;
-        if (renderer != null) {
-            renderer.dispose();
-            renderer = null;
+        mImageTrackers.clear();
+        mBlackboardRenderer = null;
+        if (mRenderer != null) {
+            mRenderer.dispose();
+            mRenderer = null;
         }
-        if (streamer != null) {
-            streamer.dispose();
-            streamer = null;
+        if (mStreamer != null) {
+            mStreamer.dispose();
+            mStreamer = null;
         }
-        if (camera != null) {
-            camera.dispose();
-            camera = null;
+        if (mCamera != null) {
+            mCamera.dispose();
+            mCamera = null;
         }
     }
 
@@ -257,42 +270,42 @@ public class ARManager {
      * Update Viewport
      */
     private void updateViewport() {
-        CameraCalibration calib = camera != null ? camera.cameraCalibration() : null;
+        CameraCalibration calib = mCamera != null ? mCamera.cameraCalibration() : null;
         int rotation = calib != null ? calib.rotation() : 0;
-        if (rotation != this.rotation) {
-            this.rotation = rotation;
-            viewport_changed = true;
+        if (rotation != this.mRotation) {
+            this.mRotation = rotation;
+            mViewportChanged = true;
         }
 
-        if (viewport_changed) {
+        if (mViewportChanged) {
             Vec2I size = new Vec2I(1, 1);
-            if ((camera != null) && camera.isOpened()) {
-                size = camera.size();
+            if ((mCamera != null) && mCamera.isOpened()) {
+                size = mCamera.size();
             }
-            // set camera size if the camera is vertical
+            // set mCamera size if the mCamera is vertical
             if (rotation == 90 || rotation == 270) {
                 size = new Vec2I(size.data[1], size.data[0]);
             }
 
             // determine scale ratio according the large one
             float scaleRatio = Math.max(
-                    (float) view_size.data[0] / (float) size.data[0],
-                    (float) view_size.data[1] / (float) size.data[1]);
+                    (float) mViewSize.data[0] / (float) size.data[0],
+                    (float) mViewSize.data[1] / (float) size.data[1]);
 
-            // calculate viewport size
+            // calculate mViewport size
             Vec2I viewport_size = new Vec2I(
                     Math.round(size.data[0] * scaleRatio),
                     Math.round(size.data[1] * scaleRatio));
 
-            // set viewport
-            viewport = new Vec4I(
-                    (view_size.data[0] - viewport_size.data[0]) / 2,
-                    (view_size.data[1] - viewport_size.data[1]) / 2,
+            // set mViewport
+            mViewport = new Vec4I(
+                    (mViewSize.data[0] - viewport_size.data[0]) / 2,
+                    (mViewSize.data[1] - viewport_size.data[1]) / 2,
                     viewport_size.data[0],
                     viewport_size.data[1]);
 
-            if ((camera != null) && camera.isOpened())
-                viewport_changed = false;
+            if ((mCamera != null) && mCamera.isOpened())
+                mViewportChanged = false;
         }
     }
 
@@ -339,6 +352,37 @@ public class ARManager {
                     Log.i(TAG, String.format("load target (%b): %s (%d)", status, target.name(), target.runtimeID()));
                 }
             });
+        }
+    }
+
+    class TextTextureContainer{
+        String text;
+
+        @DrawableRes
+        int texture;
+
+        public TextTextureContainer() {
+        }
+
+        public TextTextureContainer(String text, int texture) {
+            this.text = text;
+            this.texture = texture;
+        }
+
+        public String getText() {
+            return text;
+        }
+
+        public void setText(String text) {
+            this.text = text;
+        }
+
+        public int getTexture() {
+            return texture;
+        }
+
+        public void setTexture(int texture) {
+            this.texture = texture;
         }
     }
 }

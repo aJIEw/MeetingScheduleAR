@@ -11,4 +11,5 @@
     <string name="tools_meeting_info_text1">Board Room\n9:00 - 9:30 MeetingScheduleAR\n10:00 - 11:00 Knowledge Sharing</string>
     <string name="tools_meeting_info_text2">Training Room\n13:00 - 13:30 Training Class 1\n14:00 - 15:00 Training Class2</string>
     <string name="tools_meeting_info_text3">HZ East - Middle 2\n15:00 - 13:30 Meeting 1\n14:00 - 15:00 Meeting 2</string>
+    <string name="tools_meeting_info_text4">大帅比是谁？</string>
 </resources>

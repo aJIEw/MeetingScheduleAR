@@ -3,9 +3,8 @@ package com.perficient.meetingschedulear.renderer;
 
 import android.content.Context;
 import android.opengl.GLES20;
-import android.util.Log;
+import android.support.annotation.DrawableRes;
 
-import com.perficient.meetingschedulear.R;
 import com.perficient.meetingschedulear.util.TextureHelper;
 
 import java.nio.ByteBuffer;
@@ -14,7 +13,6 @@ import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
 import cn.easyar.Matrix44F;
-import cn.easyar.Target;
 import cn.easyar.Vec2F;
 
 /**
@@ -87,13 +85,11 @@ public class BlackboardRenderer {
      */
     final float[] mCubeTextureCoordinateData =
             {
-                    1.0f, -1.0f,
-                    1.0f, 1.0f,
-                    -1.0f, 1.0f,
-                    -1.0f, -1.0f
+                    //1.0f, -1.0f,
+                    //1.0f, 1.0f,
+                    //-1.0f, 1.0f,
+                    //-1.0f, -1.0f
             };
-
-    private String mRenderText= "";
 
     private Context mContext;
 
@@ -181,10 +177,10 @@ public class BlackboardRenderer {
                 //{255, 255, 255, 255},   // white
                 //{0, 255, 255, 255},     // cyan
                 //{0, 0, 0, 255},         // black
-                {255, 255, 255, 249},
-                {255, 255, 255, 249},
-                {255, 255, 255, 249},
-                {255, 255, 255, 249},
+                {255, 255, 255, 254},
+                {255, 255, 255, 254},
+                {255, 255, 255, 254},
+                {255, 255, 255, 254},
                 {0, 0, 0, 255},
                 {0, 0, 0, 255},
                 {0, 0, 0, 255},
@@ -235,15 +231,15 @@ public class BlackboardRenderer {
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mCoordVBO);
         float cube_vertices[][] = {
                 // +z
-                {imageWidth / 2, imageHeight / 2, imageWidth / 6},
-                {imageWidth / 2, -imageHeight / 2, imageWidth / 6},
-                {-imageWidth / 2, -imageHeight / 2, imageWidth / 6},
-                {-imageWidth / 2, imageHeight / 2, imageWidth / 6},
+                {imageWidth / 2, imageHeight / 2, imageWidth / 10},
+                {imageWidth / 2, -imageHeight / 2, imageWidth / 10},
+                {-imageWidth / 2, -imageHeight / 2, imageWidth / 10},
+                {-imageWidth / 2, imageHeight / 2, imageWidth / 10},
                 // -z
-                {imageWidth / 2, imageHeight / 2, -imageWidth / 6},
-                {imageWidth / 2, -imageHeight / 2, -imageWidth / 6},
-                {-imageWidth / 2, -imageHeight / 2, -imageWidth / 6},
-                {-imageWidth / 2, imageHeight / 2, -imageWidth / 6}};
+                {imageWidth / 2, imageHeight / 2, -imageWidth / 10},
+                {imageWidth / 2, -imageHeight / 2, -imageWidth / 10},
+                {-imageWidth / 2, -imageHeight / 2, -imageWidth / 10},
+                {-imageWidth / 2, imageHeight / 2, -imageWidth / 10}};
         FloatBuffer cube_vertices_buffer = FloatBuffer.wrap(flatten(cube_vertices));
         GLES20.glBufferData(
                 GLES20.GL_ARRAY_BUFFER,
@@ -264,13 +260,6 @@ public class BlackboardRenderer {
         GLES20.glUniformMatrix4fv(mMVMatrixHandle, 1, false, cameraView.data, 0);
         // projection
         GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, projectionMatrix.data, 0);
-
-        // Set the active texture unit to texture unit 0.
-        //GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-        // Bind the texture to this unit.
-        //GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureDataHandle);
-        // Tell the texture uniform sampler to use this texture in the shader by binding to texture unit 0.
-        //GLES20.glUniform1i(mTextureUniformHandle, 0);
 
         /*
         * Here we draw the faces with GL_TRIANGLE_FAN, it means we draw each triangle based on
@@ -303,13 +292,8 @@ public class BlackboardRenderer {
         GLES20.glUniform1i(mTextureUniformHandle, 0);
     }
 
-    public void loadTexture(Target target) {
-        Log.w(TAG, "loadTexture: " + target.name());
-        mTextureDataHandle = TextureHelper.loadTexture(mContext, R.drawable.texture_blackboard, mRenderText);
-    }
-
-    public void setRenderText(String text) {
-        mRenderText = text;
+    public void loadTexture(String renderText, @DrawableRes int drawableResTex) {
+        mTextureDataHandle = TextureHelper.loadTexture(mContext, drawableResTex, renderText);
     }
 
     private float[] flatten(float[][] a) {
