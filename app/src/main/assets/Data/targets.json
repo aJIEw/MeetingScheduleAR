@@ -13,7 +13,7 @@
     },
     {
       "image" : "Data/2d/humpback_whale.jpg",
-      "name" : "arwhale"
+      "name" : "whale"
     },
     {
       "image" : "Data/2d/Alterra_Ticket_1.jpg",
@@ -30,6 +30,10 @@
     {
       "image" : "Data/2d/Alterra_Postcard_4.jpg",
       "name" : "at4"
+    },
+    {
+      "image" : "Data/2d/my_desktop.png",
+      "name" : "desktop"
     }
   ]
 }
