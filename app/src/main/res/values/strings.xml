@@ -8,11 +8,14 @@
     <string name="action_settings">Settings</string>
     <string name="pref_title_enable_flashlight">Enable Flashlight</string>
 
-    <string name="tools_meeting_info_text1">Board Room\n9:00 - 9:30 MeetingScheduleAR\n10:00 - 11:00 Knowledge Sharing</string>
-    <string name="tools_meeting_info_text2">Training Room\n13:00 - 13:30 Training Class 1\n14:00 - 15:00 Training Class2</string>
-    <string name="tools_meeting_info_text3">HZ East - Middle 2\n15:00 - 13:30 Meeting 1\n14:00 - 15:00 Meeting 2</string>
-    <string name="tools_meeting_info_text4">大帅比是谁？</string>
+    <string name="tools_meeting_info_text1">2017-10-16 11:11:11\nBoard Room\n9:00 - 9:30 MeetingScheduleAR\n10:00 - 11:00 Knowledge Sharing</string>
+    <string name="tools_meeting_info_text2">2017-10-16 12:11:11\nTraining Room\n13:00 - 13:30 Training Class 1\n14:00 - 15:00 Training Class2</string>
+    <string name="tools_meeting_info_text3">2017-10-16 13:11:11\nHZ East - Middle 2\n15:00 - 13:30 Meeting 1\n14:00 - 15:00 Meeting 2</string>
+    <string name="tools_meeting_info_text4">2017-10-16 14:11:11\n \n大帅比是谁？</string>
 
     <string name="desc_room_image">Room Image</string>
     <string name="pref_title_recent_scanned">Recent Scanned</string>
+    <string name="key_flash_light_on">key_flash_light_on</string>
+    <string name="key_recent_scanned">key_recent_scanned</string>
+    <string name="ok_capital">OK</string>
 </resources>

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.opengl.GLES20;
 import android.support.annotation.DrawableRes;
 
+import com.perficient.meetingschedulear.model.MeetingInfo;
 import com.perficient.meetingschedulear.util.TextureHelper;
 
 import java.nio.ByteBuffer;
@@ -292,8 +293,8 @@ public class BlackboardRenderer {
         GLES20.glUniform1i(mTextureUniformHandle, 0);
     }
 
-    public void loadTexture(String renderText, @DrawableRes int drawableResTex) {
-        mTextureDataHandle = TextureHelper.loadTexture(mContext, drawableResTex, renderText);
+    public void loadTexture(MeetingInfo meetingInfo, @DrawableRes int drawableResTex) {
+        mTextureDataHandle = TextureHelper.loadTexture(mContext, drawableResTex, meetingInfo);
     }
 
     private float[] flatten(float[][] a) {

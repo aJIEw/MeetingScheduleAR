@@ -8,13 +8,27 @@ import java.util.List;
 
 public class MeetingInfo implements Parcelable {
 
+    private String time;
+
     private String roomName;
 
     private List<String> meetings;
 
-    public MeetingInfo(String roomName, List<String> meetings) {
+    public MeetingInfo() {
+    }
+
+    public MeetingInfo(String time, String roomName, List<String> meetings) {
+        this.time = time;
         this.roomName = roomName;
         this.meetings = meetings;
+    }
+
+    public String getTime() {
+        return time;
+    }
+
+    public void setTime(String time) {
+        this.time = time;
     }
 
     public String getRoomName() {
@@ -40,16 +54,18 @@ public class MeetingInfo implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.time);
         dest.writeString(this.roomName);
         dest.writeStringList(this.meetings);
     }
 
     protected MeetingInfo(Parcel in) {
+        this.time = in.readString();
         this.roomName = in.readString();
         this.meetings = in.createStringArrayList();
     }
 
-    public static final Parcelable.Creator<MeetingInfo> CREATOR = new Parcelable.Creator<MeetingInfo>() {
+    public static final Creator<MeetingInfo> CREATOR = new Creator<MeetingInfo>() {
         @Override
         public MeetingInfo createFromParcel(Parcel source) {
             return new MeetingInfo(source);

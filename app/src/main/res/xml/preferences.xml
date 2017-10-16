@@ -3,9 +3,11 @@
     <!-- Switch for flash light -->
     <SwitchPreference
         android:title="@string/pref_title_enable_flashlight"
-        android:key="pref_flash_light_on"
+        android:key="@string/key_flash_light_on"
         android:defaultValue="false"
         />
 
-    <Preference android:title="@string/pref_title_recent_scanned"/>
+    <Preference android:title="@string/pref_title_recent_scanned"
+                android:key="@string/key_recent_scanned"
+        />
 </PreferenceScreen>

@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 26
-    buildToolsVersion "26.0.1"
+    buildToolsVersion "26.0.2"
     defaultConfig {
         applicationId "com.perficient.meetingschedulear"
         minSdkVersion 16
@@ -45,4 +45,5 @@ dependencies {
     compile 'com.squareup.retrofit2:retrofit:2.3.0'
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.squareup.okhttp3:okhttp:3.9.0'
+    compile 'com.github.CymChad:BaseRecyclerViewAdapterHelper:2.9.31'
 }

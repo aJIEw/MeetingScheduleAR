@@ -1,16 +1,21 @@
 package com.perficient.meetingschedulear.util;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.opengl.GLES20;
 import android.support.annotation.DrawableRes;
 import android.util.Log;
 
 import com.perficient.meetingschedulear.R;
+import com.perficient.meetingschedulear.model.MeetingInfo;
 import com.perficient.meetingschedulear.renderer.BlackboardRenderer;
 
 import java.util.*;
 
 import cn.easyar.*;
+
+import static com.perficient.meetingschedulear.common.Constants.PREF_MEETING_INFO;
+import static com.perficient.meetingschedulear.util.TimeUtil.FORMAT_DATE_TIME_SECOND;
 
 /**
  * A manager for Renderer and AR Camera
@@ -33,9 +38,12 @@ public class ARManager {
 
     private Context mContext;
 
+    private SharedPreferences mPreferences;
+
     public ARManager(Context context) {
         mContext = context;
         mImageTrackers = new ArrayList<>();
+        mPreferences = context.getSharedPreferences(PREF_MEETING_INFO, Context.MODE_PRIVATE);
     }
 
     /**
@@ -164,11 +172,12 @@ public class ARManager {
                     }
                     if (mBlackboardRenderer != null) {
 
-                        TextTextureContainer resContainer = fetchResources(imageTarget.name());
+                        TextureContainer resContainer = fetchResources(imageTarget.name());
+                        saveScannedInfo(resContainer);
                         // load target texture once only to reduce memory usage
                         if (mPreviousTarget == null ||
                                 !imageTarget.name().equals(mPreviousTarget.name())) {
-                            mBlackboardRenderer.loadTexture(resContainer.getText(), resContainer.getTexture());
+                            mBlackboardRenderer.loadTexture(resContainer.getMeetingInfo(), resContainer.getTexture());
                         }
 
                         /*
@@ -194,32 +203,58 @@ public class ARManager {
         }
     }
 
+    private void saveScannedInfo(TextureContainer resContainer) {
+        MeetingInfo meetingInfo = resContainer.getMeetingInfo();
+
+        if (meetingInfo != null) {
+            Set<String> stringSet = new TreeSet<>();
+            stringSet.add(TimeUtil.getFormatNow(FORMAT_DATE_TIME_SECOND));
+            stringSet.addAll(meetingInfo.getMeetings());
+
+            mPreferences.edit()
+                    .putStringSet(meetingInfo.getRoomName(), stringSet)
+                    .apply();
+        }
+    }
+
     // TODO: 2017/10/15 replace this with API call
-    private TextTextureContainer fetchResources(String targetName) {
-        TextTextureContainer container = new TextTextureContainer();
+    private TextureContainer fetchResources(String targetName) {
+        TextureContainer container = new TextureContainer();
         switch (targetName) {
             case "sp0":
-                container.setText(mContext.getString(R.string.tools_meeting_info_text1));
+                container.setMeetingInfo(fetchDummyData(R.string.tools_meeting_info_text1));
                 container.setTexture(R.drawable.texture_chalkboard);
                 break;
             case "sp1":
-                container.setText(mContext.getString(R.string.tools_meeting_info_text2));
+                container.setMeetingInfo(fetchDummyData(R.string.tools_meeting_info_text2));
                 container.setTexture(R.drawable.texture_chalkboard);
                 break;
             case "whale":
-                container.setText(mContext.getString(R.string.tools_meeting_info_text3));
+                container.setMeetingInfo(fetchDummyData(R.string.tools_meeting_info_text3));
                 container.setTexture(R.drawable.texture_blackboard);
                 break;
             case "desktop":
-                container.setText(mContext.getString(R.string.tools_meeting_info_text4));
+                container.setMeetingInfo(fetchDummyData(R.string.tools_meeting_info_text4));
                 container.setTexture(R.drawable.texture_blackboard);
                 break;
             default:
-                container.setText("");
+                container.setMeetingInfo(null);
                 container.setTexture(R.drawable.texture_blackboard);
                 break;
         }
         return container;
+    }
+
+    private MeetingInfo fetchDummyData(int stringRes) {
+        String text = mContext.getString(stringRes);
+        List<String> textList = new ArrayList<>();
+        Scanner scanner = new Scanner(text).useDelimiter("\\n");
+        while (scanner.hasNext()) {
+            textList.add(scanner.next());
+        }
+
+        return new MeetingInfo(textList.get(0), textList.get(1),
+                textList.subList(2, textList.size()));
     }
 
     /**
@@ -353,26 +388,27 @@ public class ARManager {
         }
     }
 
-    class TextTextureContainer{
-        String text;
+    class TextureContainer {
+
+        private MeetingInfo meetingInfo;
 
         @DrawableRes
-        int texture;
+        private int texture;
 
-        public TextTextureContainer() {
+        public TextureContainer() {
         }
 
-        public TextTextureContainer(String text, int texture) {
-            this.text = text;
+        public TextureContainer(MeetingInfo meetingInfo, int texture) {
+            this.meetingInfo = meetingInfo;
             this.texture = texture;
         }
 
-        public String getText() {
-            return text;
+        public MeetingInfo getMeetingInfo() {
+            return meetingInfo;
         }
 
-        public void setText(String text) {
-            this.text = text;
+        public void setMeetingInfo(MeetingInfo meetingInfo) {
+            this.meetingInfo = meetingInfo;
         }
 
         public int getTexture() {

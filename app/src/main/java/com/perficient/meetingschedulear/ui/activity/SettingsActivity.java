@@ -1,34 +1,16 @@
 package com.perficient.meetingschedulear.ui.activity;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.preference.SwitchPreference;
 
 import com.perficient.meetingschedulear.R;
-import com.perficient.meetingschedulear.model.MeetingInfo;
 import com.perficient.meetingschedulear.util.ActivityUtil;
-
-import java.util.ArrayList;
-import java.util.List;
 
 
 public class SettingsActivity extends PreferenceActivity {
-
-    private static final String EXTRA_KEY_DATA = "extra_data";
-
-    private Preference mPreference;
-
-    private List<MeetingInfo> mData;
-
-    public static void actionStart(Context context, ArrayList<MeetingInfo> data) {
-        Intent intent = new Intent();
-        Bundle bundle = new Bundle();
-        bundle.putParcelableArrayList(EXTRA_KEY_DATA, data);
-        intent.putExtra(EXTRA_KEY_DATA, bundle);
-        context.startActivity(intent);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,8 +20,17 @@ public class SettingsActivity extends PreferenceActivity {
 
         addPreferencesFromResource(R.xml.preferences);
 
-        mPreference = findPreference(getString(R.string.pref_title_recent_scanned));
+        final SwitchPreference lightSwitch = (SwitchPreference) findPreference(getString(R.string.key_flash_light_on));
+        lightSwitch.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                ActivityUtil.toggleFlashLight(lightSwitch.isChecked());
+                return true;
+            }
+        });
+
+        Preference recentScanned = findPreference(getString(R.string.key_recent_scanned));
         Intent intent = new Intent(this, RecentScannedActivity.class);
-        mPreference.setIntent(intent);
+        recentScanned.setIntent(intent);
     }
 }
