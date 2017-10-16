@@ -7,10 +7,5 @@
         android:defaultValue="false"
         />
 
-    <Preference android:title="Recent Scanned">
-        <intent
-            android:action="com.perficient.meetingschedulear.ui.activity.ScannedActivity"
-            android:targetPackage="com.perficient.meetingschedulear"
-            android:targetClass="com.perficient.meetingschedulear.ui.activity.ScannedActivity"/>
-    </Preference>
+    <Preference android:title="@string/pref_title_recent_scanned"/>
 </PreferenceScreen>

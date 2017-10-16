@@ -48,6 +48,9 @@ public class MainActivity extends BaseActivity {
             Log.e(TAG, "Initialization Failed.");
         }
 
+        /*
+        * Double tab to enter settings page
+        * */
         mGestureDetectorCompat = new GestureDetectorCompat(this, new GestureDetector.SimpleOnGestureListener() {
             @Override
             public boolean onDoubleTap(MotionEvent e) {
@@ -100,7 +103,9 @@ public class MainActivity extends BaseActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         if (permissionCallbacks.containsKey(requestCode)) {
             PermissionCallback callback = permissionCallbacks.get(requestCode);
             permissionCallbacks.remove(requestCode);

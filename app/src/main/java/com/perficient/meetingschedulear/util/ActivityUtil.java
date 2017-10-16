@@ -1,7 +1,14 @@
 package com.perficient.meetingschedulear.util;
 
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.hardware.Camera;
+import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraManager;
+import android.os.Build;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
@@ -14,6 +21,7 @@ import com.perficient.meetingschedulear.R;
 import java.util.ArrayList;
 import java.util.List;
 
+import static cn.easyar.engine.EasyAR.getApplicationContext;
 import static com.perficient.meetingschedulear.BaseApplication.getResourcesObject;
 
 public class ActivityUtil {
@@ -63,6 +71,35 @@ public class ActivityUtil {
 
     public static void setUpToolBar(Activity activity, int rsId) {
         setUpToolBar(activity, getResourcesObject().getString(rsId));
+    }
+
+    public static void turnOnFlashLight(Activity activity) {
+        boolean available = activity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
+        Camera cam = Camera.open();
+        Camera.Parameters p = cam.getParameters();
+        p.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+        cam.setParameters(p);
+        cam.startPreview();
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    public static void toggleFlashLight(boolean toggle) {
+        try {
+            CameraManager cameraManager = (CameraManager) getApplicationContext()
+                    .getSystemService(Context.CAMERA_SERVICE);
+
+            for (String id : cameraManager.getCameraIdList()) {
+
+                // Turn on the flash if camera has one
+                if (cameraManager.getCameraCharacteristics(id).get(CameraCharacteristics.FLASH_INFO_AVAILABLE)) {
+                    cameraManager.setTorchMode(id, toggle);
+                    Log.w(TAG, "toggleFlashLight: toggled" );
+                }
+            }
+
+        } catch (Exception e) {
+            ToastUtil.showToast("Torch Failed: " + e.getMessage());
+        }
     }
 
     public static Toolbar getToolbar() {

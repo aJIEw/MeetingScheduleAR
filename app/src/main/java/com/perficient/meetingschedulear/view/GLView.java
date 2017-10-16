@@ -1,7 +1,9 @@
 package com.perficient.meetingschedulear.view;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.opengl.GLSurfaceView;
+import android.preference.PreferenceManager;
 import android.support.v4.view.GestureDetectorCompat;
 import android.view.MotionEvent;
 
@@ -27,6 +29,8 @@ public class GLView extends GLSurfaceView {
 
     private GestureDetectorCompat mGestureDetectorCompat;
 
+    private SharedPreferences mPreferences;
+
     public GLView(Context context) {
         super(context);
 
@@ -36,6 +40,7 @@ public class GLView extends GLSurfaceView {
         setEGLConfigChooser(new ConfigChooser());
 
         mARManager = new ARManager(context);
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
 
         this.setRenderer(new GLSurfaceView.Renderer() {
             @Override

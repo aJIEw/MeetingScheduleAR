@@ -18,8 +18,6 @@ public class ARManager {
 
     private static final String TAG = ARManager.class.getSimpleName();
 
-    private static final String TARGET_RENDERED = "rendered";
-
     private CameraDevice camera;
     private CameraFrameStreamer streamer;
     private ArrayList<ImageTracker> trackers;
