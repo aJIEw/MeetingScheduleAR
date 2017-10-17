@@ -55,7 +55,7 @@ public class MainActivity extends BaseActivity {
             @Override
             public boolean onDoubleTap(MotionEvent e) {
                 Log.w(TAG, "onDoubleTap: ");
-                startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+                startActivity(new Intent(MainActivity.this, RecentScannedActivity.class));
                 return true;
             }
         });

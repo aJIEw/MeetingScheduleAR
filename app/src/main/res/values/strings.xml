@@ -18,4 +18,7 @@
     <string name="key_flash_light_on">key_flash_light_on</string>
     <string name="key_recent_scanned">key_recent_scanned</string>
     <string name="ok_capital">OK</string>
+    <string name="yes_capital">Yes</string>
+    <string name="cancel_capital">Cancel</string>
+    <string name="dialog_title_delete_this_item">Delete this item?</string>
 </resources>

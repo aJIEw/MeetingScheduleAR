@@ -89,11 +89,16 @@ public class RecentScannedActivity extends BaseActivity {
                 Date date2 = TimeUtil.stringToDate(o2.getTime(), TimeUtil.FORMAT_DATE_TIME_SECOND);
 
                 // the nearest time is ahead of the further one
-                if (date1.getTime() > date2.getTime()) {
-                    return -1;
-                } else if (date1.getTime() < date2.getTime()) {
-                    return 1;
+                if (date1 != null && date2 != null) {
+                    if (date1.getTime() > date2.getTime()) {
+                        return -1;
+                    } else if (date1.getTime() < date2.getTime()) {
+                        return 1;
+                    } else {
+                        return 0;
+                    }
                 } else {
+                    new RuntimeException("Date is null");
                     return 0;
                 }
             }
@@ -121,9 +126,41 @@ public class RecentScannedActivity extends BaseActivity {
                 builder.create().show();
             }
         });
+        mAdapter.setOnItemLongClickListener(new BaseQuickAdapter.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(final BaseQuickAdapter adapter, View view, final int position) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(RecentScannedActivity.this);
+                builder.setTitle(R.string.dialog_title_delete_this_item)
+                        .setPositiveButton(getString(R.string.yes_capital), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                String roomName = mMeetingInfos.get(position).getRoomName();
+                                deleteFromSp(roomName);
+                                adapter.remove(position);
+                                adapter.notifyDataSetChanged();
+                            }
+                        })
+                        .setNegativeButton(getString(R.string.cancel_capital), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .setCancelable(false);
+
+                builder.create().show();
+                return true;
+            }
+        });
 
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.setAdapter(mAdapter);
+    }
+
+    public void deleteFromSp(String key) {
+        mPreferences.edit()
+                .remove(key)
+                .apply();
     }
 }

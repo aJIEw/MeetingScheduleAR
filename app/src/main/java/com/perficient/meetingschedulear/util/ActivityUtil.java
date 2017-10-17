@@ -73,17 +73,24 @@ public class ActivityUtil {
         setUpToolBar(activity, getResourcesObject().getString(rsId));
     }
 
-    public static void turnOnFlashLight(Activity activity) {
+    @SuppressWarnings("deprecation")
+    public static void toggleFlashLight(Activity activity) {
         boolean available = activity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
-        Camera cam = Camera.open();
-        Camera.Parameters p = cam.getParameters();
-        p.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-        cam.setParameters(p);
-        cam.startPreview();
+        if (available) {
+            Log.d(TAG, "toggleFlashLight: toggle on");
+            Camera cam = Camera.open();
+            Camera.Parameters p = cam.getParameters();
+            p.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+            cam.setParameters(p);
+            cam.startPreview();
+        } else {
+            Log.w(TAG, "toggleFlashLight: No flash light found!");
+        }
     }
 
+    @SuppressWarnings("ConstantConditions")
     @TargetApi(Build.VERSION_CODES.M)
-    public static void toggleFlashLight(boolean toggle) {
+    public static void toggleFlashLightForM(boolean toggle) {
         try {
             CameraManager cameraManager = (CameraManager) getApplicationContext()
                     .getSystemService(Context.CAMERA_SERVICE);
@@ -91,9 +98,10 @@ public class ActivityUtil {
             for (String id : cameraManager.getCameraIdList()) {
 
                 // Turn on the flash if camera has one
-                if (cameraManager.getCameraCharacteristics(id).get(CameraCharacteristics.FLASH_INFO_AVAILABLE)) {
+                if (cameraManager.getCameraCharacteristics(id)
+                        .get(CameraCharacteristics.FLASH_INFO_AVAILABLE)) {
                     cameraManager.setTorchMode(id, toggle);
-                    Log.w(TAG, "toggleFlashLight: toggled" );
+                    Log.w(TAG, "toggleFlashLightForM: toggled" );
                 }
             }
 

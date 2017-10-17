@@ -4,12 +4,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
-import android.preference.SwitchPreference;
 
 import com.perficient.meetingschedulear.R;
 import com.perficient.meetingschedulear.util.ActivityUtil;
 
 
+@SuppressWarnings("deprecation")
 public class SettingsActivity extends PreferenceActivity {
 
     @Override
@@ -20,15 +20,10 @@ public class SettingsActivity extends PreferenceActivity {
 
         addPreferencesFromResource(R.xml.preferences);
 
-        final SwitchPreference lightSwitch = (SwitchPreference) findPreference(getString(R.string.key_flash_light_on));
-        lightSwitch.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-            @Override
-            public boolean onPreferenceClick(Preference preference) {
-                ActivityUtil.toggleFlashLight(lightSwitch.isChecked());
-                return true;
-            }
-        });
+        initView();
+    }
 
+    private void initView() {
         Preference recentScanned = findPreference(getString(R.string.key_recent_scanned));
         Intent intent = new Intent(this, RecentScannedActivity.class);
         recentScanned.setIntent(intent);
