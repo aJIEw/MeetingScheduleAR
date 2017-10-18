@@ -17,8 +17,7 @@ public class MeetingInfo implements Parcelable {
     public MeetingInfo() {
     }
 
-    public MeetingInfo(String time, String roomName, List<String> meetings) {
-        this.time = time;
+    public MeetingInfo(String roomName, List<String> meetings) {
         this.roomName = roomName;
         this.meetings = meetings;
     }

@@ -2,18 +2,26 @@ package com.perficient.meetingschedulear.util;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.opengl.GLES20;
+import android.os.AsyncTask;
 import android.support.annotation.DrawableRes;
 import android.util.Log;
 
 import com.perficient.meetingschedulear.R;
+import com.perficient.meetingschedulear.model.ImageTargetInfo;
 import com.perficient.meetingschedulear.model.MeetingInfo;
 import com.perficient.meetingschedulear.renderer.BlackboardRenderer;
+import com.squareup.picasso.Picasso;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.*;
 
 import cn.easyar.*;
 
+import static com.perficient.meetingschedulear.common.Constants.FILE_DIR_TARGET_IMAGE;
 import static com.perficient.meetingschedulear.common.Constants.PREF_MEETING_INFO;
 import static com.perficient.meetingschedulear.util.TimeUtil.FORMAT_DATE_TIME_SECOND;
 
@@ -24,9 +32,15 @@ public class ARManager {
 
     private static final String TAG = ARManager.class.getSimpleName();
 
+    private static final String PICASSO_WEEPING_WOMAN = "http://www.pablopicasso.org/images/paintings/the-weeping-woman.jpg";
+    private static final String PICASSO_SMILING_GIRL = "https://s-media-cache-ak0.pinimg.com/736x/88/df/66/88df66a4cb0fdffc7188a5b417f72398.jpg";
+
+    private static final String TARGET_JSON_PATH = "Data/targets.json";
+
     private CameraDevice mCamera;
     private CameraFrameStreamer mStreamer;
     private ArrayList<ImageTracker> mImageTrackers;
+    private ImageTracker mTracker;
     private Renderer mRenderer;
     private BlackboardRenderer mBlackboardRenderer;
 
@@ -63,16 +77,41 @@ public class ARManager {
         if (!status) {
             return false;
         }
-        ImageTracker tracker = new ImageTracker();
-        tracker.attachStreamer(mStreamer); // connect mStreamer to the ImageTracker
+        mTracker = new ImageTracker();
+        mTracker.attachStreamer(mStreamer); // connect mStreamer to the ImageTracker
 
-        // load into tracker
-        // or we should download images from the server and load them into tracker
-        loadAllFromJsonFile(tracker, "Data/targets.json");
+        //loadAllFromJsonFile(mTracker, TARGET_JSON_PATH);
+        loadFromJsonFile(mTracker, TARGET_JSON_PATH, "whale");
+        loadFromJsonFile(mTracker, TARGET_JSON_PATH, "sp0");
+        loadFromJsonFile(mTracker, TARGET_JSON_PATH, "sp1");
+        loadFromJsonFile(mTracker, TARGET_JSON_PATH, "at1");
+        mImageTrackers.add(mTracker);
 
-        mImageTrackers.add(tracker);
+        loadExternalTargets(mStreamer);
 
         return true;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void loadExternalTargets(CameraFrameStreamer streamer) {
+        ImageTracker tracker = new ImageTracker();
+        tracker.attachStreamer(streamer);
+
+        List<ImageTargetInfo> targetInfoList = fetchDummyUrls();
+        new ImageDownloader(mContext).execute(targetInfoList);
+
+        File dir = new File(mContext.getExternalFilesDir(null).getAbsoluteFile(), FILE_DIR_TARGET_IMAGE);
+        loadFromDir(tracker, dir);
+
+        mImageTrackers.add(tracker);
+    }
+
+    // TODO: 2017/10/17 this should be replaced with API call to fetch image urls
+    private List<ImageTargetInfo> fetchDummyUrls() {
+        List<ImageTargetInfo> urls = new ArrayList<>();
+        urls.add(new ImageTargetInfo(PICASSO_WEEPING_WOMAN, "weeping_woman.png"));
+        urls.add(new ImageTargetInfo(PICASSO_SMILING_GIRL, "smiling_girl.png"));
+        return urls;
     }
 
     /**
@@ -128,14 +167,14 @@ public class ARManager {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
         if (mRenderer != null) {
-            Vec4I default_viewport = new Vec4I(0, 0, mViewSize.data[0], mViewSize.data[1]);
+            Vec4I defaultViewport = new Vec4I(0, 0, mViewSize.data[0], mViewSize.data[1]);
             GLES20.glViewport(
-                    default_viewport.data[0],
-                    default_viewport.data[1],
-                    default_viewport.data[2],
-                    default_viewport.data[3]);
+                    defaultViewport.data[0],
+                    defaultViewport.data[1],
+                    defaultViewport.data[2],
+                    defaultViewport.data[3]);
 
-            if (mRenderer.renderErrorMessage(default_viewport)) {
+            if (mRenderer.renderErrorMessage(defaultViewport)) {
                 return;
             }
         }
@@ -172,12 +211,17 @@ public class ARManager {
                     }
                     if (mBlackboardRenderer != null) {
 
+                        // fetch dummy data from resources
                         TextureContainer resContainer = fetchResources(imageTarget.name());
-                        saveScannedInfo(resContainer);
+                        // save scanned info into shared preference
+                        saveScannedInfo(resContainer.getMeetingInfo());
+
                         // load target texture once only to reduce memory usage
                         if (mPreviousTarget == null ||
                                 !imageTarget.name().equals(mPreviousTarget.name())) {
-                            mBlackboardRenderer.loadTexture(resContainer.getMeetingInfo(), resContainer.getTexture());
+                            mBlackboardRenderer.loadTexture(
+                                    resContainer.getMeetingInfo(),
+                                    resContainer.getTexture());
                         }
 
                         /*
@@ -203,21 +247,19 @@ public class ARManager {
         }
     }
 
-    private void saveScannedInfo(TextureContainer resContainer) {
-        MeetingInfo meetingInfo = resContainer.getMeetingInfo();
-
+    private void saveScannedInfo(MeetingInfo meetingInfo) {
         if (meetingInfo != null) {
             Set<String> stringSet = new TreeSet<>();
             stringSet.add(TimeUtil.getFormatNow(FORMAT_DATE_TIME_SECOND));
             stringSet.addAll(meetingInfo.getMeetings());
 
             mPreferences.edit()
+                    // use room name as key
                     .putStringSet(meetingInfo.getRoomName(), stringSet)
                     .apply();
         }
     }
 
-    // TODO: 2017/10/15 replace this with API call
     private TextureContainer fetchResources(String targetName) {
         TextureContainer container = new TextureContainer();
         switch (targetName) {
@@ -245,6 +287,7 @@ public class ARManager {
         return container;
     }
 
+    // TODO: 2017/10/15 replace this with API call
     private MeetingInfo fetchDummyData(int stringRes) {
         String text = mContext.getString(stringRes);
         List<String> textList = new ArrayList<>();
@@ -253,8 +296,9 @@ public class ARManager {
             textList.add(scanner.next());
         }
 
-        return new MeetingInfo(textList.get(0), textList.get(1),
-                textList.subList(2, textList.size()));
+        String roomName = textList.get(0);
+        List<String> meetings = textList.subList(1, textList.size());
+        return new MeetingInfo(roomName, meetings);
     }
 
     /**
@@ -366,6 +410,17 @@ public class ARManager {
         });
     }
 
+    private void loadFromDir(ImageTracker tracker, File dir) {
+        if (!dir.isDirectory()) {
+            Log.w(TAG, "loadFromDir: not a directory!");
+            return;
+        }
+
+        for (File file : dir.listFiles()) {
+            loadFromImage(tracker, file.getAbsolutePath());
+        }
+    }
+
     private void loadFromJsonFile(ImageTracker tracker, String path, String targetname) {
         ImageTarget target = new ImageTarget();
         target.setup(path, StorageType.Assets, targetname);
@@ -388,7 +443,7 @@ public class ARManager {
         }
     }
 
-    class TextureContainer {
+    private class TextureContainer {
 
         private MeetingInfo meetingInfo;
 
@@ -417,6 +472,79 @@ public class ARManager {
 
         public void setTexture(int texture) {
             this.texture = texture;
+        }
+    }
+
+    /**
+     * Download image from the server, and load them
+     * */
+    private class ImageDownloader extends AsyncTask<List<ImageTargetInfo>, Void, List<String>> {
+
+        private Context mContext;
+
+        public ImageDownloader(Context context) {
+            mContext = context;
+        }
+
+        @Override
+        protected List<String> doInBackground(List<ImageTargetInfo>... params) {
+            List<ImageTargetInfo> targetInfos = params[0];
+            List<String> downloadedImages = new ArrayList<>();
+            for (ImageTargetInfo target: targetInfos) {
+                try {
+                    File imageDir = new File(
+                            mContext.getExternalFilesDir(null),
+                            FILE_DIR_TARGET_IMAGE);
+
+                    if (!imageDir.exists()) {
+                        imageDir.mkdir();
+                    }
+
+                    File imageFile = new File(imageDir, target.getImageName());
+                    if (imageFile.exists()) {
+                        break;
+                    }
+
+                    Log.d(TAG, "doInBackground: ---- Downloading image " + target.getImageName() + " -----");
+                    Bitmap bitmap = Picasso.with(mContext)
+                            .load(target.getUrl()).get();
+                    // save image to external storage card
+                    saveImage(bitmap, imageFile);
+
+                    downloadedImages.add(imageFile.getAbsolutePath());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            }
+            return downloadedImages;
+        }
+
+        @Override
+        protected void onPostExecute(List<String> result) {
+            for (String path : result) {
+                loadFromImage(mTracker, path);
+            }
+        }
+
+        private void saveImage(Bitmap bitmap, File imageFile) {
+            FileOutputStream fos = null;
+            try {
+                fos = new FileOutputStream(imageFile);
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (fos != null) {
+                        fos.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            Log.d(TAG, "image saved to >>>" + imageFile.getAbsolutePath());
         }
     }
 }
