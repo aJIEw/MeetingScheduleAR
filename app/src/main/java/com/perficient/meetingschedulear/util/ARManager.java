@@ -10,7 +10,7 @@ import android.util.Log;
 
 import com.perficient.meetingschedulear.R;
 import com.perficient.meetingschedulear.model.ImageTargetInfo;
-import com.perficient.meetingschedulear.model.MeetingInfo;
+import com.perficient.meetingschedulear.model.MeetingRoomInfo;
 import com.perficient.meetingschedulear.renderer.BlackboardRenderer;
 import com.squareup.picasso.Picasso;
 
@@ -49,6 +49,7 @@ public class ARManager {
     private int mRotation = 0;
     private Vec4I mViewport = new Vec4I(0, 0, 1280, 720);
     private ImageTarget mPreviousTarget;
+    private double mPreviousTimeStamp;
 
     private Context mContext;
 
@@ -211,16 +212,27 @@ public class ARManager {
                     }
                     if (mBlackboardRenderer != null) {
 
-                        // fetch dummy data from resources
-                        TextureContainer resContainer = fetchResources(imageTarget.name());
-                        // save scanned info into shared preference
-                        saveScannedInfo(resContainer.getMeetingInfo());
-
-                        // load target texture once only to reduce memory usage
+                        // get current time stamp
+                        double timeStamp = frame.timestamp();
+                        // load target texture only once to reduce memory usage
                         if (mPreviousTarget == null ||
                                 !imageTarget.name().equals(mPreviousTarget.name())) {
+
+                            // fetch dummy data from resources
+                            TextureContainer resContainer = fetchResources(imageTarget.name());
+
+                            /*
+                            * Since the frame will be cached, so when the user return to the scanning
+                            * from other activities, the image target will still be there. We can use
+                            * timestamp to check the current frame and to save the info only once.
+                            * */
+                            if (timeStamp != mPreviousTimeStamp) {
+                                // save scanned info into shared preference
+                                saveScannedInfo(resContainer.getMeetingRoomInfo());
+                            }
+
                             mBlackboardRenderer.loadTexture(
-                                    resContainer.getMeetingInfo(),
+                                    resContainer.getMeetingRoomInfo(),
                                     resContainer.getTexture());
                         }
 
@@ -238,6 +250,7 @@ public class ARManager {
                                 imageTarget.size());
 
                         mPreviousTarget = imageTarget;
+                        mPreviousTimeStamp = frame.timestamp();
                         break;
                     }
                 }
@@ -247,15 +260,16 @@ public class ARManager {
         }
     }
 
-    private void saveScannedInfo(MeetingInfo meetingInfo) {
-        if (meetingInfo != null) {
+    private void saveScannedInfo(MeetingRoomInfo meetingRoomInfo) {
+        if (meetingRoomInfo != null) {
+            Log.d(TAG, "saveScannedInfo: " + meetingRoomInfo.getRoomName());
             Set<String> stringSet = new TreeSet<>();
             stringSet.add(TimeUtil.getFormatNow(FORMAT_DATE_TIME_SECOND));
-            stringSet.addAll(meetingInfo.getMeetings());
+            stringSet.addAll(meetingRoomInfo.getMeetings());
 
             mPreferences.edit()
                     // use room name as key
-                    .putStringSet(meetingInfo.getRoomName(), stringSet)
+                    .putStringSet(meetingRoomInfo.getRoomName(), stringSet)
                     .apply();
         }
     }
@@ -264,23 +278,23 @@ public class ARManager {
         TextureContainer container = new TextureContainer();
         switch (targetName) {
             case "sp0":
-                container.setMeetingInfo(fetchDummyData(R.string.tools_meeting_info_text1));
+                container.setMeetingRoomInfo(fetchDummyData(R.string.tools_meeting_info_text1));
                 container.setTexture(R.drawable.texture_chalkboard);
                 break;
             case "sp1":
-                container.setMeetingInfo(fetchDummyData(R.string.tools_meeting_info_text2));
+                container.setMeetingRoomInfo(fetchDummyData(R.string.tools_meeting_info_text2));
                 container.setTexture(R.drawable.texture_chalkboard);
                 break;
             case "whale":
-                container.setMeetingInfo(fetchDummyData(R.string.tools_meeting_info_text3));
+                container.setMeetingRoomInfo(fetchDummyData(R.string.tools_meeting_info_text3));
                 container.setTexture(R.drawable.texture_blackboard);
                 break;
             case "desktop":
-                container.setMeetingInfo(fetchDummyData(R.string.tools_meeting_info_text4));
+                container.setMeetingRoomInfo(fetchDummyData(R.string.tools_meeting_info_text4));
                 container.setTexture(R.drawable.texture_blackboard);
                 break;
             default:
-                container.setMeetingInfo(null);
+                container.setMeetingRoomInfo(null);
                 container.setTexture(R.drawable.texture_blackboard);
                 break;
         }
@@ -288,7 +302,7 @@ public class ARManager {
     }
 
     // TODO: 2017/10/15 replace this with API call
-    private MeetingInfo fetchDummyData(int stringRes) {
+    private MeetingRoomInfo fetchDummyData(int stringRes) {
         String text = mContext.getString(stringRes);
         List<String> textList = new ArrayList<>();
         Scanner scanner = new Scanner(text).useDelimiter("\\n");
@@ -298,7 +312,7 @@ public class ARManager {
 
         String roomName = textList.get(0);
         List<String> meetings = textList.subList(1, textList.size());
-        return new MeetingInfo(roomName, meetings);
+        return new MeetingRoomInfo(roomName, meetings);
     }
 
     /**
@@ -445,7 +459,7 @@ public class ARManager {
 
     private class TextureContainer {
 
-        private MeetingInfo meetingInfo;
+        private MeetingRoomInfo mMeetingRoomInfo;
 
         @DrawableRes
         private int texture;
@@ -453,17 +467,17 @@ public class ARManager {
         public TextureContainer() {
         }
 
-        public TextureContainer(MeetingInfo meetingInfo, int texture) {
-            this.meetingInfo = meetingInfo;
+        public TextureContainer(MeetingRoomInfo meetingRoomInfo, int texture) {
+            this.mMeetingRoomInfo = meetingRoomInfo;
             this.texture = texture;
         }
 
-        public MeetingInfo getMeetingInfo() {
-            return meetingInfo;
+        public MeetingRoomInfo getMeetingRoomInfo() {
+            return mMeetingRoomInfo;
         }
 
-        public void setMeetingInfo(MeetingInfo meetingInfo) {
-            this.meetingInfo = meetingInfo;
+        public void setMeetingRoomInfo(MeetingRoomInfo meetingRoomInfo) {
+            this.mMeetingRoomInfo = meetingRoomInfo;
         }
 
         public int getTexture() {
@@ -477,7 +491,7 @@ public class ARManager {
 
     /**
      * Download image from the server, and load them
-     * */
+     */
     private class ImageDownloader extends AsyncTask<List<ImageTargetInfo>, Void, List<String>> {
 
         private Context mContext;
@@ -490,7 +504,7 @@ public class ARManager {
         protected List<String> doInBackground(List<ImageTargetInfo>... params) {
             List<ImageTargetInfo> targetInfos = params[0];
             List<String> downloadedImages = new ArrayList<>();
-            for (ImageTargetInfo target: targetInfos) {
+            for (ImageTargetInfo target : targetInfos) {
                 try {
                     File imageDir = new File(
                             mContext.getExternalFilesDir(null),

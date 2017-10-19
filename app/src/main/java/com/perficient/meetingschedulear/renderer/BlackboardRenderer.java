@@ -5,7 +5,7 @@ import android.content.Context;
 import android.opengl.GLES20;
 import android.support.annotation.DrawableRes;
 
-import com.perficient.meetingschedulear.model.MeetingInfo;
+import com.perficient.meetingschedulear.model.MeetingRoomInfo;
 import com.perficient.meetingschedulear.util.TextureHelper;
 
 import java.nio.ByteBuffer;
@@ -72,10 +72,12 @@ public class BlackboardRenderer {
     private int mFacesVBO;
     /**
      * VBO for cube's text
-     * */
+     */
     private int mTextVBO;
 
-    private final FloatBuffer mCubeTextureCoordinates;
+    private FloatBuffer mCubeTextureCoordinates;
+
+    private final FloatBuffer mCubeTextureCoordinatesForPlane;
 
     private final int mTextureCoordinateDataSize = 2;
 
@@ -86,10 +88,28 @@ public class BlackboardRenderer {
      */
     final float[] mCubeTextureCoordinateData =
             {
-                    //1.0f, -1.0f,
-                    //1.0f, 1.0f,
-                    //-1.0f, 1.0f,
-                    //-1.0f, -1.0f
+                    // Front face
+                    0.0f, 0.0f,
+                    0.0f, 1.0f,
+                    1.0f, 0.0f,
+                    0.0f, 1.0f,
+                    1.0f, 1.0f,
+                    1.0f, 0.0f,
+            };
+
+    /**
+     * Because images have a Y axis pointing downward (values increase as you move down the image) while
+     * OpenGL has a Y axis pointing upward, we adjust for that here by flipping the Y axis.
+     */
+    private final float[] mCubeTextureCoordinateDataForPlane =
+            {
+                    // Front face
+                    0.0f, 0.0f,
+                    0.0f, 25.0f,
+                    25.0f, 0.0f,
+                    0.0f, 25.0f,
+                    25.0f, 25.0f,
+                    25.0f, 0.0f,
             };
 
     private Context mContext;
@@ -131,13 +151,14 @@ public class BlackboardRenderer {
     public BlackboardRenderer(Context context) {
         mContext = context;
 
-        // init buffer for cube texture coordinate data
-        ByteBuffer ctb = ByteBuffer.allocateDirect(
-                mCubeTextureCoordinateData.length * 4);
-        ctb.order(ByteOrder.nativeOrder());
-        mCubeTextureCoordinates = ctb.asFloatBuffer();
-        mCubeTextureCoordinates.put(mCubeTextureCoordinateData);
-        mCubeTextureCoordinates.position(0);
+        // init buffer for cube texture coordinates data
+        mCubeTextureCoordinates = ByteBuffer.allocateDirect(mCubeTextureCoordinateData.length * 4)
+                .order(ByteOrder.nativeOrder()).asFloatBuffer();
+        mCubeTextureCoordinates.put(mCubeTextureCoordinateData).position(0);
+
+        mCubeTextureCoordinatesForPlane = ByteBuffer.allocateDirect(mCubeTextureCoordinateDataForPlane.length * 4)
+                .order(ByteOrder.nativeOrder()).asFloatBuffer();
+        mCubeTextureCoordinatesForPlane.put(mCubeTextureCoordinateDataForPlane).position(0);
 
         mProgramHandle = GLES20.glCreateProgram();
 
@@ -200,7 +221,8 @@ public class BlackboardRenderer {
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, mFacesVBO);
         short cube_faces[][] = {
                 /* +z */{3, 2, 1, 0},
-                /* -y */{2, 3, 7, 6},
+                ///* -y */{2, 3, 7, 6},// disable the right face
+                /* -y */{0, 0, 0, 0},
                 /* +y */{0, 1, 5, 4},
                 /* -x */{3, 0, 4, 7},
                 /* +x */{1, 2, 6, 5},
@@ -230,6 +252,11 @@ public class BlackboardRenderer {
 
         // bind buffer data for cube vertices
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mCoordVBO);
+
+        /*
+        * We are using NDC coordinate system here, it's a left handed coordinate system,
+        * so the starting point will be on the left top from our viewport.
+        * */
         float cube_vertices[][] = {
                 // +z
                 {imageWidth / 2, imageHeight / 2, imageWidth / 10},
@@ -291,10 +318,15 @@ public class BlackboardRenderer {
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureDataHandle);
         // Tell the texture uniform sampler to use this texture in the shader by binding to texture unit 0.
         GLES20.glUniform1i(mTextureUniformHandle, 0);
+
+        mCubeTextureCoordinatesForPlane.position(0);
+        GLES20.glEnableVertexAttribArray(mTextureCoordinateHandle);
+        GLES20.glVertexAttribPointer(mTextureCoordinateHandle, mTextureCoordinateDataSize, GLES20.GL_FLOAT, false,
+                0, mCubeTextureCoordinatesForPlane);
     }
 
-    public void loadTexture(MeetingInfo meetingInfo, @DrawableRes int drawableResTex) {
-        mTextureDataHandle = TextureHelper.loadTexture(mContext, drawableResTex, meetingInfo);
+    public void loadTexture(MeetingRoomInfo meetingRoomInfo, @DrawableRes int drawableResTex) {
+        mTextureDataHandle = TextureHelper.loadTexture(mContext, drawableResTex, meetingRoomInfo);
     }
 
     private float[] flatten(float[][] a) {

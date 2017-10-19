@@ -14,7 +14,7 @@ import android.view.View;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.perficient.meetingschedulear.R;
 import com.perficient.meetingschedulear.adapter.RecentScannedAdapter;
-import com.perficient.meetingschedulear.model.MeetingInfo;
+import com.perficient.meetingschedulear.model.MeetingRoomInfo;
 import com.perficient.meetingschedulear.util.TimeUtil;
 
 import java.util.*;
@@ -37,7 +37,7 @@ public class RecentScannedActivity extends BaseActivity {
 
     private SharedPreferences mPreferences;
 
-    private List<MeetingInfo> mMeetingInfos;
+    private List<MeetingRoomInfo> mMeetingRoomInfos;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,34 +57,34 @@ public class RecentScannedActivity extends BaseActivity {
         //noinspection unchecked
         Map<String, Set<String>> meetingData = (Map<String, Set<String>>) mPreferences.getAll();
 
-        mMeetingInfos = new ArrayList<>();
+        mMeetingRoomInfos = new ArrayList<>();
 
         for (String nameKey : meetingData.keySet()) {
-            MeetingInfo meetingInfo = new MeetingInfo();
-            meetingInfo.setRoomName(nameKey);
+            MeetingRoomInfo meetingRoomInfo = new MeetingRoomInfo();
+            meetingRoomInfo.setRoomName(nameKey);
 
             Iterator<String> iterator = meetingData.get(nameKey).iterator();
             List<String> meetings = new ArrayList<>();
             while (iterator.hasNext()) {
                 String val = iterator.next();
                 if (val.matches(REGEX_TIME_SECOND)) {
-                    meetingInfo.setTime(val);
-                    Log.d(TAG, "initData: time set " + val + " for " + meetingInfo.getRoomName());
+                    meetingRoomInfo.setTime(val);
+                    Log.d(TAG, "initData: time set " + val + " for " + meetingRoomInfo.getRoomName());
                 } else {
                     meetings.add(val);
-                    Log.d(TAG, "initData: added " + val + " for " + meetingInfo.getRoomName());
+                    Log.d(TAG, "initData: added " + val + " for " + meetingRoomInfo.getRoomName());
                 }
             }
-            meetingInfo.setMeetings(meetings);
+            meetingRoomInfo.setMeetings(meetings);
 
-            mMeetingInfos.add(meetingInfo);
+            mMeetingRoomInfos.add(meetingRoomInfo);
 
-            Log.d(TAG, "initData: added meeting info for " + meetingInfo.getRoomName());
+            Log.d(TAG, "initData: added meeting info for " + meetingRoomInfo.getRoomName());
         }
 
-        Collections.sort(mMeetingInfos, new Comparator<MeetingInfo>() {
+        Collections.sort(mMeetingRoomInfos, new Comparator<MeetingRoomInfo>() {
             @Override
-            public int compare(MeetingInfo o1, MeetingInfo o2) {
+            public int compare(MeetingRoomInfo o1, MeetingRoomInfo o2) {
                 Date date1 = TimeUtil.stringToDate(o1.getTime(), TimeUtil.FORMAT_DATE_TIME_SECOND);
                 Date date2 = TimeUtil.stringToDate(o2.getTime(), TimeUtil.FORMAT_DATE_TIME_SECOND);
 
@@ -106,24 +106,14 @@ public class RecentScannedActivity extends BaseActivity {
     }
 
     private void initView() {
-        mAdapter = new RecentScannedAdapter(R.layout.item_recent_scanned, mMeetingInfos);
+        mAdapter = new RecentScannedAdapter(R.layout.item_recent_scanned, mMeetingRoomInfos);
         mAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-                MeetingInfo info = mMeetingInfos.get(position);
-                String content = TextUtils.join("\n", info.getMeetings());
-                android.app.AlertDialog.Builder builder = new AlertDialog.Builder(RecentScannedActivity.this)
-                        .setTitle(info.getRoomName())
-                        .setMessage(content)
-                        .setCancelable(true)
-                        .setPositiveButton(R.string.ok_capital, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        });
+                //showMeetingDialog(position);
 
-                builder.create().show();
+                String roomName = mMeetingRoomInfos.get(position).getRoomName();
+                MeetingsActivity.actionStart(RecentScannedActivity.this, roomName);
             }
         });
         mAdapter.setOnItemLongClickListener(new BaseQuickAdapter.OnItemLongClickListener() {
@@ -134,7 +124,7 @@ public class RecentScannedActivity extends BaseActivity {
                         .setPositiveButton(getString(R.string.yes_capital), new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                String roomName = mMeetingInfos.get(position).getRoomName();
+                                String roomName = mMeetingRoomInfos.get(position).getRoomName();
                                 deleteFromSp(roomName);
                                 adapter.remove(position);
                                 adapter.notifyDataSetChanged();
@@ -156,6 +146,23 @@ public class RecentScannedActivity extends BaseActivity {
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.setAdapter(mAdapter);
+    }
+
+    private void showMeetingDialog(int position) {
+        MeetingRoomInfo info = mMeetingRoomInfos.get(position);
+        String content = TextUtils.join("\n", info.getMeetings());
+        android.app.AlertDialog.Builder builder = new AlertDialog.Builder(RecentScannedActivity.this)
+                .setTitle(info.getRoomName())
+                .setMessage(content)
+                .setCancelable(true)
+                .setPositiveButton(R.string.ok_capital, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+        builder.create().show();
     }
 
     public void deleteFromSp(String key) {

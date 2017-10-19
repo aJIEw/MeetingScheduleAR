@@ -1,25 +1,31 @@
 package com.perficient.meetingschedulear.model;
 
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
 import java.util.List;
 
-public class MeetingInfo implements Parcelable {
+public class MeetingInfo {
+
+    private String name;
 
     private String time;
 
-    private String roomName;
-
-    private List<String> meetings;
+    private List<String> attenders;
 
     public MeetingInfo() {
     }
 
-    public MeetingInfo(String roomName, List<String> meetings) {
-        this.roomName = roomName;
-        this.meetings = meetings;
+    public MeetingInfo(String name, String time, List<String> attenders) {
+        this.name = name;
+        this.time = time;
+        this.attenders = attenders;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getTime() {
@@ -30,49 +36,11 @@ public class MeetingInfo implements Parcelable {
         this.time = time;
     }
 
-    public String getRoomName() {
-        return roomName;
+    public List<String> getAttenders() {
+        return attenders;
     }
 
-    public void setRoomName(String roomName) {
-        this.roomName = roomName;
+    public void setAttenders(List<String> attenders) {
+        this.attenders = attenders;
     }
-
-    public List<String> getMeetings() {
-        return meetings;
-    }
-
-    public void setMeetings(List<String> meetings) {
-        this.meetings = meetings;
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(this.time);
-        dest.writeString(this.roomName);
-        dest.writeStringList(this.meetings);
-    }
-
-    protected MeetingInfo(Parcel in) {
-        this.time = in.readString();
-        this.roomName = in.readString();
-        this.meetings = in.createStringArrayList();
-    }
-
-    public static final Creator<MeetingInfo> CREATOR = new Creator<MeetingInfo>() {
-        @Override
-        public MeetingInfo createFromParcel(Parcel source) {
-            return new MeetingInfo(source);
-        }
-
-        @Override
-        public MeetingInfo[] newArray(int size) {
-            return new MeetingInfo[size];
-        }
-    };
 }

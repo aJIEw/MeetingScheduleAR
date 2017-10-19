@@ -6,13 +6,13 @@ import android.opengl.GLES20;
 import android.opengl.GLUtils;
 
 import com.perficient.meetingschedulear.BaseApplication;
-import com.perficient.meetingschedulear.model.MeetingInfo;
+import com.perficient.meetingschedulear.model.MeetingRoomInfo;
 
 import java.util.ArrayList;
 
 public class TextureHelper {
 
-    public static int loadTexture(final Context context, final int resourceId, MeetingInfo meetingInfo) {
+    public static int loadTexture(final Context context, final int resourceId, MeetingRoomInfo meetingRoomInfo) {
         final int[] textureHandle = new int[1];
 
         GLES20.glGenTextures(1, textureHandle, 0);
@@ -24,10 +24,10 @@ public class TextureHelper {
             // Read in the resource
             Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), resourceId, options);
 
-            if (meetingInfo != null) {
+            if (meetingRoomInfo != null) {
                 ArrayList<String> textList = new ArrayList<>();
-                textList.add(meetingInfo.getRoomName()); // add room name as title
-                textList.addAll(meetingInfo.getMeetings()); // add all the meeting items
+                textList.add(meetingRoomInfo.getRoomName()); // add room name as title
+                textList.addAll(meetingRoomInfo.getMeetings()); // add all the meeting items
                 bitmap = drawText(bitmap, textList);
             }
 
